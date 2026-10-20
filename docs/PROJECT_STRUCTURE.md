@@ -55,6 +55,12 @@ exports remain local and ignored. Recorded absolute paths in experiment reports
 describe the original training computer; use the checked-out model path when
 running predictions on another computer.
 
+On Streamlit Community Cloud, zero raw CSV files and missing dataset/output
+directories are expected until those files are supplied or generated on that
+server. The saved binary models and comparison reports remain available. Use
+the Binary **Predict** page with a processed CSV to reuse them. Disable
+**Generate local SHAP** when the processed training/background dataset is absent.
+
 ## Multiclass persistence lifecycle
 
 1. Read/prepare data and perform the requested CV/grid search.

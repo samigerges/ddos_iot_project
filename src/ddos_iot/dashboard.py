@@ -85,6 +85,12 @@ def render_overview() -> None:
     columns[0].metric("Raw CSV files", len(raw_files))
     columns[1].metric("Best model", best_model_name(best_report))
 
+    if not raw_files and any(MODEL_COMPARISON_DIR.glob("*/model.joblib")):
+        st.info(
+            "Saved binary models are available. Training datasets are stored separately. "
+            "To reuse a model, open Predict and upload a processed CSV."
+        )
+
     st.subheader("Project Outputs")
     output_rows = [
         {
@@ -750,9 +756,8 @@ def render_prediction_local_shap(
         st.image(str(selected))
 
 
-@st.cache_data(show_spinner=False)
 def read_json(path: Path) -> dict[str, Any] | list[Any] | None:
-    """Read JSON if it exists."""
+    """Read current report contents, including files added after the first visit."""
 
     if not path.exists():
         return None
@@ -994,7 +999,6 @@ def resolve_dashboard_path(path: Path | str) -> Path:
 def clear_dashboard_caches() -> None:
     """Clear cached file readers after preprocessing or training outputs change."""
 
-    read_json.clear()
     read_csv.clear()
     count_csv_rows.clear()
     count_processed_feature_columns.clear()
