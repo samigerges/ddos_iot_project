@@ -1,0 +1,22 @@
+{
+  "accuracy": 0.9916259577465627,
+  "balanced_accuracy": 0.8740402516279884,
+  "best_rounds": 180,
+  "cv_macro_f1_mean": null,
+  "cv_macro_f1_std": null,
+  "cv_seconds": 0.0,
+  "early_fit_seconds": 368.8711354000261,
+  "inference_device": "cpu",
+  "inference_seconds": 38.53172030003043,
+  "inference_us_per_sample": 32.74137533131248,
+  "macro_f1": 0.7710030066337615,
+  "model": "xgboost",
+  "predicted_class_count": 34,
+  "refit_seconds": 358.1968348000082,
+  "test_rows": 1176851,
+  "training_device": "gpu",
+  "training_rows": 5491971,
+  "training_seconds": 727.0679702000343,
+  "validation_macro_f1": 0.7728400420670956,
+  "weighted_f1": 0.9928754768384478
+}

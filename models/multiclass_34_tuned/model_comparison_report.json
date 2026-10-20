@@ -1,0 +1,17 @@
+{
+  "best_model": null,
+  "cv_folds": 5,
+  "failures": {},
+  "grid_search_enabled": true,
+  "majority_class_baseline": {
+    "accuracy": 0.1533303706246585,
+    "balanced_accuracy": 0.029411764705882353,
+    "label": "DDoS-ICMP_Flood",
+    "macro_f1": 0.007820338210005986,
+    "weighted_f1": 0.04076924210911348
+  },
+  "preprocessing_seconds": 129.42904650000855,
+  "results": [],
+  "selection_metric": "cv_macro_f1_mean",
+  "status": "interrupted"
+}

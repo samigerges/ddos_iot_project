@@ -1,0 +1,10 @@
+{
+  "class_counts": {
+    "0": 25000,
+    "1": 25000
+  },
+  "feature_count": 20,
+  "train_rows_used": 50000,
+  "training_sample_path": "models\\requested_model_comparison\\training_sample.csv",
+  "training_summary_path": "models\\requested_model_comparison\\training_sample_summary.json"
+}

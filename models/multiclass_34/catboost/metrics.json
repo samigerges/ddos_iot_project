@@ -1,0 +1,22 @@
+{
+  "accuracy": 0.9826766515047359,
+  "balanced_accuracy": 0.7823477399080571,
+  "best_rounds": 473,
+  "cv_macro_f1_mean": null,
+  "cv_macro_f1_std": null,
+  "cv_seconds": 0.0,
+  "early_fit_seconds": 5226.021512200008,
+  "inference_device": "cpu",
+  "inference_seconds": 5.316172200022265,
+  "inference_us_per_sample": 4.517285705685992,
+  "macro_f1": 0.6843577685554901,
+  "model": "catboost",
+  "predicted_class_count": 34,
+  "refit_seconds": 594.9630151000456,
+  "test_rows": 1176851,
+  "training_device": "gpu",
+  "training_rows": 5491971,
+  "training_seconds": 5820.984527300054,
+  "validation_macro_f1": 0.6848299691496971,
+  "weighted_f1": 0.9855444456014093
+}

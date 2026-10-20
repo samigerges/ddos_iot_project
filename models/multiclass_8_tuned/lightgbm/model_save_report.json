@@ -1,0 +1,22 @@
+{
+  "best_rounds": 104,
+  "class_count": 8,
+  "contents": [
+    "trained_model",
+    "selected_features",
+    "fitted_scaler",
+    "label_encoder"
+  ],
+  "evaluation_status": "complete",
+  "model": "lightgbm",
+  "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\models\\multiclass_8_tuned\\lightgbm\\model.joblib",
+  "saved_at_utc": "2026-10-14T06:19:07.427170+00:00",
+  "selected_hyperparameters": {
+    "learning_rate": 0.1,
+    "max_depth": 6,
+    "n_estimators": 500
+  },
+  "stage": "final_training_complete",
+  "training_device": "cpu",
+  "training_rows": 3999996
+}

@@ -1,0 +1,100 @@
+{
+  "test": {
+    "accuracy": 0.9992047193478472,
+    "classification_report": {
+      "Benign": {
+        "f1-score": 0.987481419130684,
+        "precision": 0.9753413995613104,
+        "recall": 0.9999274600123318,
+        "support": 27571.0
+      },
+      "DDoS": {
+        "f1-score": 0.9995893146607616,
+        "precision": 0.9999976489092702,
+        "recall": 0.9991813137506401,
+        "support": 851364.0
+      },
+      "accuracy": 0.9992047193478472,
+      "macro avg": {
+        "f1-score": 0.9935353668957227,
+        "precision": 0.9876695242352903,
+        "recall": 0.999554386881486,
+        "support": 878935.0
+      },
+      "weighted avg": {
+        "f1-score": 0.9992095063840861,
+        "precision": 0.9992242157762484,
+        "recall": 0.9992047193478472,
+        "support": 878935.0
+      }
+    },
+    "confusion_matrix": {
+      "fn": 697,
+      "fp": 2,
+      "tn": 27569,
+      "tp": 850667
+    },
+    "f1": 0.9995893146607616,
+    "false_negative_rate": 0.0008186862493598508,
+    "false_positive_rate": 7.25399876682021e-05,
+    "inference_rows": 878935,
+    "inference_time_per_row_ms": 0.0019304974770616601,
+    "inference_time_seconds": 1.6967818000011903,
+    "pr_auc": 0.9999997878135165,
+    "precision": 0.9999976489092702,
+    "recall": 0.9991813137506401,
+    "roc_auc": 0.999993423112349,
+    "split": "test",
+    "threshold": 0.5,
+    "train_time_seconds": 2.9416233000010834
+  },
+  "train": {
+    "accuracy": 1.0,
+    "classification_report": {
+      "Benign": {
+        "f1-score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 25000.0
+      },
+      "DDoS": {
+        "f1-score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 25000.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "f1-score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 50000.0
+      },
+      "weighted avg": {
+        "f1-score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 50000.0
+      }
+    },
+    "confusion_matrix": {
+      "fn": 0,
+      "fp": 0,
+      "tn": 25000,
+      "tp": 25000
+    },
+    "f1": 1.0,
+    "false_negative_rate": 0.0,
+    "false_positive_rate": 0.0,
+    "inference_rows": 50000,
+    "inference_time_per_row_ms": 0.0018204999999943538,
+    "inference_time_seconds": 0.09102499999971769,
+    "pr_auc": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "roc_auc": 1.0,
+    "split": "train",
+    "threshold": 0.5,
+    "train_time_seconds": 2.9416233000010834
+  }
+}

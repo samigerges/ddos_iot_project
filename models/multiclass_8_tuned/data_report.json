@@ -1,0 +1,137 @@
+{
+  "args": {
+    "chunk_size": 250000,
+    "class_weight": "balanced",
+    "counts_only": false,
+    "cv_folds": 5,
+    "cv_preprocessing": "train",
+    "data_protocol": "paper",
+    "device": "gpu",
+    "early_stopping_rounds": 30,
+    "feature_selection": "median",
+    "gpu_id": 0,
+    "label_column": "label",
+    "learning_rate": 0.05,
+    "lightgbm_device": "cpu",
+    "log_period": 25,
+    "max_depth": 6,
+    "max_test_per_class": 0,
+    "max_train_per_class": 0,
+    "min_samples_per_class": 1000,
+    "models": [
+      "xgboost",
+      "lightgbm",
+      "catboost"
+    ],
+    "n_estimators": 500,
+    "n_jobs": -1,
+    "no_plots": false,
+    "num_classes": 8,
+    "output_path": "models\\multiclass_8_tuned",
+    "param_grid": null,
+    "random_state": 42,
+    "refit_full": true,
+    "sampling_target": 5000000,
+    "selector_sample_size": 200000,
+    "source_input_path": [
+      "data\\raw\\train\\train.csv"
+    ],
+    "test_input_path": "data\\raw\\test\\test.csv",
+    "test_size": 0.2,
+    "train_input_path": "data\\raw\\train\\train.csv",
+    "validation_size": 0.2,
+    "verbose": false
+  },
+  "class_count": 8,
+  "cv_preprocessing": "train",
+  "data_protocol": "paper",
+  "fit_rows": 3199996,
+  "test": {
+    "duplicates": "retained as present in source",
+    "max_rows_per_class": 0,
+    "origin": "new stratified split after paper family sampling",
+    "raw_counts": {
+      "Benign": 23586,
+      "BruteForce": 280,
+      "DDoS": 728063,
+      "DoS": 173099,
+      "Mirai": 56404,
+      "Recon": 7578,
+      "Spoofing": 10475,
+      "WebBased": 514
+    },
+    "raw_rows": 999999,
+    "removed_invalid_rows": 0,
+    "selected_counts": {
+      "Benign": 23586,
+      "BruteForce": 280,
+      "DDoS": 728063,
+      "DoS": 173099,
+      "Mirai": 56404,
+      "Recon": 7578,
+      "Spoofing": 10475,
+      "WebBased": 514
+    },
+    "selected_rows": 999999,
+    "valid_counts": {
+      "Benign": 23586,
+      "BruteForce": 280,
+      "DDoS": 728063,
+      "DoS": 173099,
+      "Mirai": 56404,
+      "Recon": 7578,
+      "Spoofing": 10475,
+      "WebBased": 514
+    },
+    "valid_rows": 999999
+  },
+  "test_used_for_tuning": false,
+  "train": {
+    "duplicates": "retained as present in source",
+    "max_rows_per_class": 0,
+    "origin": "new stratified split after paper family sampling",
+    "raw_counts": {
+      "Benign": 94347,
+      "BruteForce": 1122,
+      "DDoS": 2912251,
+      "DoS": 692397,
+      "Mirai": 225614,
+      "Recon": 30310,
+      "Spoofing": 41901,
+      "WebBased": 2054
+    },
+    "raw_rows": 3999996,
+    "removed_invalid_rows": 0,
+    "selected_counts": {
+      "Benign": 94347,
+      "BruteForce": 1122,
+      "DDoS": 2912251,
+      "DoS": 692397,
+      "Mirai": 225614,
+      "Recon": 30310,
+      "Spoofing": 41901,
+      "WebBased": 2054
+    },
+    "selected_rows": 3999996,
+    "valid_counts": {
+      "Benign": 94347,
+      "BruteForce": 1122,
+      "DDoS": 2912251,
+      "DoS": 692397,
+      "Mirai": 225614,
+      "Recon": 30310,
+      "Spoofing": 41901,
+      "WebBased": 2054
+    },
+    "valid_rows": 3999996
+  },
+  "validation_rows": 800000,
+  "versions": {
+    "catboost": "1.2.10",
+    "lightgbm": "4.6.0",
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "xgboost": "3.2.0"
+  }
+}

@@ -6,7 +6,13 @@ __pycache__/
 
 data/raw/
 data/processed/
-models/
+# Keep reusable models and small reports; leave generated datasets and plots local.
+models/**
+!models/**/
+!models/**/*.joblib
+!models/**/*.json
+!models/**/model_comparison.csv
+models/**/shap/
 outputs/
 .cache/
 tmp/

@@ -44,6 +44,17 @@ Do not rename active run directories. Keep interrupted full-data runs: their CV
 reports are useful evidence, even when they do not yet contain a final model.
 Sample-count reports are data inventory, not disposable model smoke tests.
 
+Saved `models/**/model.joblib` bundles, companion JSON reports, and
+`model_comparison.csv` summaries are tracked in Git. Multiclass bundles contain
+the trained estimator, selected features, fitted scaler, and label encoder, so
+they can be reused without training. Binary bundles contain their estimator and
+feature columns and accept processed input through `src/predict.py`.
+
+Raw and processed datasets, prediction CSVs, training samples, plots, and SHAP
+exports remain local and ignored. Recorded absolute paths in experiment reports
+describe the original training computer; use the checked-out model path when
+running predictions on another computer.
+
 ## Multiclass persistence lifecycle
 
 1. Read/prepare data and perform the requested CV/grid search.

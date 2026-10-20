@@ -1,0 +1,22 @@
+{
+  "best_rounds": 133,
+  "class_count": 8,
+  "contents": [
+    "trained_model",
+    "selected_features",
+    "fitted_scaler",
+    "label_encoder"
+  ],
+  "evaluation_status": "complete",
+  "model": "xgboost",
+  "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\models\\multiclass_8_tuned\\xgboost\\model.joblib",
+  "saved_at_utc": "2026-10-14T04:37:02.524946+00:00",
+  "selected_hyperparameters": {
+    "learning_rate": 0.1,
+    "max_depth": 6,
+    "n_estimators": 500
+  },
+  "stage": "final_training_complete",
+  "training_device": "gpu",
+  "training_rows": 3999996
+}
