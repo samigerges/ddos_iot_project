@@ -1,0 +1,9 @@
+true_label,Benign,BruteForce,DDoS,DoS,Mirai,Recon,Spoofing,WebBased
+Benign,21692,338,0,0,0,372,668,516
+BruteForce,15,215,0,0,0,21,6,23
+DDoS,4,0,727667,169,10,200,12,1
+DoS,2,0,43,173046,4,3,1,0
+Mirai,0,0,2,0,56396,4,2,0
+Recon,503,244,0,0,1,6065,160,605
+Spoofing,630,298,0,0,0,317,8637,593
+WebBased,11,30,0,0,0,17,9,447

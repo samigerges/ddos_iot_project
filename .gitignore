@@ -12,6 +12,9 @@ models/**
 !models/**/*.joblib
 !models/**/*.json
 !models/**/model_comparison.csv
+!models/**/confusion_matrix.csv
+!models/**/classification_report_test.csv
+!models/**/classification_report_train.csv
 models/**/shap/
 outputs/
 .cache/

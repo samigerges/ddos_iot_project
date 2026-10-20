@@ -204,6 +204,36 @@ class DashboardPageTests(unittest.TestCase):
             launch.assert_not_called()
             self.assertTrue(any("Confirm" in m.value for m in app.warning))
 
+    def test_saved_8_and_34_class_metrics_and_confusion_tables_without_loading_models(self):
+        for count in (8, 34):
+            folder = self.runs[count][0] / "xgboost"
+            labels = [f"class_{i:02d}" for i in range(count)]
+            matrix = np.eye(count, dtype=int) * 10
+            matrix[0, 0], matrix[0, 1] = 8, 2
+            pd.DataFrame(matrix, index=labels, columns=labels).to_csv(folder / "confusion_matrix.csv", index_label="true_label")
+            rows = [{"class": label, "precision": 0.8, "recall": 0.9, "f1-score": 0.85, "support": 10}
+                    for label in labels]
+            rows.append({"class": "macro avg", "precision": 0.75, "recall": 0.9, "f1-score": 0.8, "support": count * 10})
+            pd.DataFrame(rows).to_csv(folder / "classification_report_test.csv", index=False)
+        with patch("ddos_iot.dashboard_multiclass.discover_runs", side_effect=lambda count: self.runs[count]), \
+             patch("ddos_iot.dashboard_multiclass.start_training_job", side_effect=AssertionError("Metrics must not train")), \
+             patch("joblib.load", side_effect=AssertionError("Metrics must not load models")):
+            app = self.app()
+            for index, count in ((1, 8), (2, 34)):
+                app.selectbox(key="classification_problem").select_index(index).run()
+                app.radio(key=f"mc_{count}_page").set_value("Model Comparison").run()
+                self.assert_no_exception(app)
+                tables = [element.value for element in app.dataframe]
+                scores = next(table for table in tables if "macro_precision" in table and "macro_recall" in table)
+                self.assertAlmostEqual(scores.iloc[0]["macro_precision"], 0.75)
+                counts = next(table for table in tables if table.index.name == "Actual class")
+                self.assertEqual(counts.shape, (count, count))
+                self.assertEqual(counts.iloc[0, 1], 2)
+                app.radio(key=f"mc_classes_{count}_xgboost_matrix_values").set_value("Row percentages").run()
+                self.assert_no_exception(app)
+                normalized = next(element.value for element in app.dataframe if element.value.index.name == "Actual class")
+                self.assertAlmostEqual(normalized.iloc[0, 1], 0.2)
+
     def test_prediction_page_calls_inference_not_training_and_retains_export(self):
         output_root = self.root / "predictions"
         raw = self.root / "raw.csv"

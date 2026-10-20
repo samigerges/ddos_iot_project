@@ -50,6 +50,14 @@ the trained estimator, selected features, fitted scaler, and label encoder, so
 they can be reused without training. Binary bundles contain their estimator and
 feature columns and accept processed input through `src/predict.py`.
 
+The small `confusion_matrix.csv` and `classification_report_{train,test}.csv`
+evaluation reports are also tracked. **Model Comparison** shows model-level
+score and timing tables, per-class precision/recall/F1/support, and a confusion
+matrix as a heatmap and table. Matrix rows are actual labels and columns are
+predicted labels; switch between raw counts and row percentages. Binary runs
+also support selecting the train or test split using their saved JSON counts.
+These views require neither training datasets nor model retraining.
+
 Raw and processed datasets, prediction CSVs, training samples, plots, and SHAP
 exports remain local and ignored. Recorded absolute paths in experiment reports
 describe the original training computer; use the checked-out model path when

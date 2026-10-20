@@ -12,6 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from ddos_iot.attack_families import FAMILY_MEMBERS
+from ddos_iot.dashboard_metrics import add_multiclass_scores, render_evaluation_tables, render_metric_table
 from ddos_iot.dashboard_runs import (
     MODEL_NAMES, build_training_command, discover_runs, read_report,
     saved_models, start_training_job, tail_log,
@@ -240,7 +241,21 @@ def render_comparison(run: Path | None) -> None:
     report = read_report(run / "model_comparison_report.json")
     st.caption(f"Best model: {report.get('best_model') or 'not selected yet'} · "
                f"selection criterion: {report.get('selection_metric', 'see experiment metadata')}")
-    frame = show_csv(run / "model_comparison.csv")
+    try:
+        frame = add_multiclass_scores(pd.read_csv(run / "model_comparison.csv"), run)
+    except (OSError, ValueError, pd.errors.ParserError):
+        frame = pd.DataFrame()
+    st.subheader("Test metrics by model")
+    st.caption("Scores range from 0 to 1. Macro metrics weight each class equally; weighted F1 uses class support.")
+    render_metric_table(frame, ("model", "accuracy", "macro_precision", "macro_recall", "macro_f1", "weighted_f1",
+                                "balanced_accuracy", "cv_macro_f1_mean", "cv_macro_f1_std"),
+                        sort_by=report.get("selection_metric", "macro_f1"))
+    st.subheader("Timing comparison")
+    render_metric_table(frame, ("model", "training_seconds", "cv_seconds", "total_training_seconds",
+                                "inference_seconds", "inference_us_per_sample"))
+    if not frame.empty:
+        with st.expander("All recorded model metrics"):
+            st.dataframe(frame, use_container_width=True, hide_index=True)
     metrics = [c for c in ("macro_f1", "accuracy", "balanced_accuracy", "weighted_f1",
                            "cv_macro_f1_mean", "training_seconds", "inference_us_per_sample")
                if c in frame.columns and frame[c].notna().any()]
@@ -251,13 +266,13 @@ def render_comparison(run: Path | None) -> None:
     if not names:
         st.info("No model reports yet.")
         return
-    name = st.selectbox("Model details", names, key="mc_model_details")
+    winner = report.get("best_model")
+    name = st.selectbox("Model details", names, index=names.index(winner) if winner in names else 0,
+                        key="mc_model_details")
     folder = run / name
     st.write(f"Saved bundle: {'available' if (folder / 'model.joblib').is_file() else 'not yet available'}")
-    for filename in ("confusion_matrix_normalized.png", "confusion_matrix.png"):
-        if (folder / filename).is_file():
-            st.image(str(folder / filename), caption=filename)
-    for filename in ("classification_report_test.csv", "confusion_matrix.csv", "grid_search_results.csv"):
+    render_evaluation_tables(folder, key=f"mc_{run.name}_{name}")
+    for filename in ("grid_search_results.csv",):
         if (folder / filename).is_file():
             with st.expander(filename):
                 show_csv(folder / filename)

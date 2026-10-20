@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from ddos_iot.dashboard_metrics import render_evaluation_tables, render_metric_table
 from ddos_iot.paths import (
     MODEL_COMPARISON_DIR,
     PREDICTIONS_DIR,
@@ -123,7 +124,7 @@ def render_overview() -> None:
 
     if comparison_file.exists():
         st.subheader("Latest Comparison")
-        st.dataframe(read_csv(comparison_file), use_container_width=True, hide_index=True)
+        st.dataframe(pd.read_csv(comparison_file), use_container_width=True, hide_index=True)
     else:
         st.info("No model comparison is available yet. Run the pipeline to generate results.")
 
@@ -346,7 +347,7 @@ def render_model_comparison_page() -> None:
         st.info("No model comparison file exists yet. Run model comparison first.")
         return
 
-    comparison = read_csv(comparison_path)
+    comparison = pd.read_csv(comparison_path)
     training_summary = read_latest_training_summary()
     summary_cols = st.columns(3)
     summary_cols[0].metric("Best model", best_model_name(report))
@@ -358,7 +359,16 @@ def render_model_comparison_page() -> None:
         "Features",
         format_count_or_missing(training_summary.get("feature_count") if isinstance(training_summary, dict) else None),
     )
-    st.dataframe(comparison, use_container_width=True, hide_index=True)
+    st.subheader("Test metrics by model")
+    st.caption("Scores range from 0 to 1. F1, precision, and recall use DDoS as the positive class.")
+    render_metric_table(
+        comparison,
+        ("model", "status", "accuracy", "precision", "recall", "f1", "roc_auc", "pr_auc",
+         "false_positive_rate", "false_negative_rate"),
+        sort_by=report.get("selected_metric", "f1") if isinstance(report, dict) else "f1",
+    )
+    st.subheader("Timing comparison")
+    render_metric_table(comparison, ("model", "train_time_seconds", "inference_time_seconds", "inference_time_per_row_ms"))
 
     metric_columns = [
         "accuracy",
@@ -375,14 +385,16 @@ def render_model_comparison_page() -> None:
         selected_metric = st.selectbox(
             "Chart metric",
             available_metrics,
-            index=available_metrics.index("f1"),
+            index=available_metrics.index("f1") if "f1" in available_metrics else 0,
         )
         st.bar_chart(comparison.set_index("model")[selected_metric])
 
     model_dirs = available_model_dirs()
     if model_dirs:
         st.subheader("Model Details")
-        model_dir = st.selectbox("Model", model_dirs, format_func=lambda path: path.name)
+        winner = best_model_name(report)
+        default_model = next((index for index, folder in enumerate(model_dirs) if folder.name == winner), 0)
+        model_dir = st.selectbox("Model", model_dirs, index=default_model, format_func=lambda path: path.name)
         render_model_detail(model_dir)
 
 
@@ -391,21 +403,26 @@ def render_model_detail(model_dir: Path) -> None:
 
     metrics = read_json(model_dir / "metrics.json")
     metadata = read_json(model_dir / "model_metadata.json")
-    if metrics:
-        test_metrics = metrics.get("test", {})
-        cols = st.columns(4)
-        cols[0].metric("F1", format_metric(test_metrics.get("f1")))
-        cols[1].metric("Recall", format_metric(test_metrics.get("recall")))
-        cols[2].metric("Precision", format_metric(test_metrics.get("precision")))
-        cols[3].metric("Inference", f"{test_metrics.get('inference_time_seconds', 0):.3f}s")
+    if isinstance(metrics, dict):
+        rows = [{**values, "split": split.title()} for split, values in metrics.items()
+                if split in ("train", "test") and isinstance(values, dict)]
+        st.subheader("Train and test metrics")
+        render_metric_table(pd.DataFrame(rows), ("split", "accuracy", "precision", "recall", "f1",
+                                               "roc_auc", "pr_auc", "false_positive_rate", "false_negative_rate"))
+        splits = [split for split in ("test", "train") if isinstance(metrics.get(split), dict)]
+    else:
+        splits = []
     if isinstance(metadata, dict):
         metadata_cols = st.columns(2)
         metadata_cols[0].metric("Training rows", format_count_or_missing(metadata.get("train_rows_used")))
         metadata_cols[1].metric("Features", format_count_or_missing(metadata.get("feature_count")))
 
+    split = st.radio("Evaluation split", splits, format_func=str.title, horizontal=True,
+                     key=f"binary_{model_dir.name}_split") if splits else "test"
+    render_evaluation_tables(model_dir, metrics=metrics.get(split) if splits else None,
+                             split=split, key=f"binary_{model_dir.name}_{split}")
     render_images(
         [
-            model_dir / "confusion_matrix.png",
             model_dir / "roc_curve.png",
             model_dir / "precision_recall_curve.png",
             model_dir / "score_distribution.png",
@@ -946,11 +963,11 @@ def read_latest_model_metadata() -> dict[str, Any] | None:
     if not isinstance(best_model, dict):
         return None
 
-    model_dir = best_model.get("model_dir")
-    if not isinstance(model_dir, str):
+    # The recorded model_dir can use Windows paths from the training computer.
+    model_dir = next((folder for folder in available_model_dirs() if folder.name == best_model.get("model")), None)
+    if model_dir is None:
         return None
-
-    metadata_path = resolve_dashboard_path(model_dir) / "model_metadata.json"
+    metadata_path = model_dir / "model_metadata.json"
     metadata = read_json(metadata_path)
     return metadata if isinstance(metadata, dict) else None
 
