@@ -11,7 +11,11 @@ SRC_ROOT = PACKAGE_ROOT.parent
 PROJECT_ROOT = SRC_ROOT.parent
 
 DATA_DIR = PROJECT_ROOT / "data"
-RAW_DATA_DIR = DATA_DIR / "raw" / "train"
+RAW_DATA_DIR = DATA_DIR / "raw"
+RAW_TRAIN_DIR = RAW_DATA_DIR / "train"
+RAW_TEST_DIR = RAW_DATA_DIR / "test"
+RAW_TRAIN_FILE = RAW_TRAIN_DIR / "train.csv"
+RAW_TEST_FILE = RAW_TEST_DIR / "test.csv"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
 MODELS_DIR = PROJECT_ROOT / "models"

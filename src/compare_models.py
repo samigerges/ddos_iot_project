@@ -43,6 +43,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--n-jobs", type=int, default=1)
+    parser.add_argument(
+        "--train-sample-size",
+        type=int,
+        default=0,
+        help="Processed training rows to use after preprocessing. Use 0 to keep all rows.",
+    )
     parser.add_argument("--rf-estimators", type=int, default=100)
     parser.add_argument("--rf-max-depth", type=int, default=15)
     parser.add_argument("--rf-min-samples-leaf", type=int, default=1)

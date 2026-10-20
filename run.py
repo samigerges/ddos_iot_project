@@ -34,17 +34,23 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument("--input-path", type=Path, default=Path("data/raw/train"))
+    parser.add_argument("--train-input-path", type=Path, default=Path("data/raw/train/train.csv"))
+    parser.add_argument("--test-input-path", type=Path, default=Path("data/raw/test/test.csv"))
     parser.add_argument("--processed-path", type=Path, default=Path("data/processed"))
     parser.add_argument("--models-output-path", type=Path, default=Path("models/requested_model_comparison"))
     parser.add_argument("--skip-preprocess", action="store_true", help="Use existing processed files.")
     parser.add_argument("--skip-model-comparison", action="store_true", help="Only create processed files.")
 
     parser.add_argument("--label-column", default=None)
-    parser.add_argument("--test-size", type=float, default=0.20)
     parser.add_argument("--top-features", type=int, default=25)
     parser.add_argument("--rebalance", choices=("none", "undersample", "oversample"), default="undersample")
     parser.add_argument("--max-rows-per-file", type=int, default=None)
+    parser.add_argument(
+        "--train-sample-size",
+        type=int,
+        default=0,
+        help="Processed training rows to use after preprocessing. Use 0 to keep all rows.",
+    )
 
     parser.add_argument("--models", nargs="+", choices=DEFAULT_MODELS, default=DEFAULT_MODELS)
     parser.add_argument(
@@ -98,10 +104,10 @@ def build_preprocessing_args(args: argparse.Namespace) -> Namespace:
     """Map full-pipeline arguments to preprocessing arguments."""
 
     return Namespace(
-        input_path=args.input_path,
+        train_input_path=args.train_input_path,
+        test_input_path=args.test_input_path,
         output_path=args.processed_path,
         label_column=args.label_column,
-        test_size=args.test_size,
         top_features=args.top_features,
         rebalance=args.rebalance,
         random_state=args.random_state,
@@ -121,6 +127,7 @@ def build_model_comparison_args(args: argparse.Namespace) -> Namespace:
         threshold=args.threshold,
         random_state=args.random_state,
         n_jobs=args.n_jobs,
+        train_sample_size=args.train_sample_size,
         rf_estimators=args.rf_estimators,
         rf_max_depth=args.rf_max_depth,
         rf_min_samples_leaf=args.rf_min_samples_leaf,

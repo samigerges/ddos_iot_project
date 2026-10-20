@@ -18,6 +18,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input-file", type=Path, required=True)
     parser.add_argument("--output-file", type=Path, default=PREDICTIONS_DIR / "predictions.csv")
     parser.add_argument("--threshold", type=float, default=0.5)
+    parser.add_argument(
+        "--explain-local-shap",
+        action="store_true",
+        help="Generate local SHAP explanations for the prediction input rows.",
+    )
+    parser.add_argument(
+        "--background-file",
+        type=Path,
+        default=None,
+        help="Processed CSV used as the SHAP background. Defaults to the model's processed train.csv when available.",
+    )
+    parser.add_argument(
+        "--shap-output-dir",
+        type=Path,
+        default=None,
+        help="Directory for prediction-time SHAP outputs. Defaults to a sibling folder next to --output-file.",
+    )
+    parser.add_argument("--shap-background-size", type=int, default=200)
+    parser.add_argument("--shap-waterfall-count", type=int, default=10)
+    parser.add_argument("--shap-max-display", type=int, default=15)
+    parser.add_argument(
+        "--shap-model-agnostic-sample-size",
+        type=int,
+        default=0,
+        help="Rows to explain for slower model-agnostic SHAP fallback. Use 0 to explain all input rows.",
+    )
+    parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 

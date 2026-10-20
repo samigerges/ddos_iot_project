@@ -57,6 +57,23 @@ def load_dataset(files: list[Path], max_rows_per_file: int | None) -> pd.DataFra
     return data
 
 
+def validate_matching_schema(train_data: pd.DataFrame, test_data: pd.DataFrame) -> None:
+    """Validate that raw train and test splits expose the same columns."""
+
+    train_columns = list(train_data.columns)
+    test_columns = list(test_data.columns)
+    if train_columns == test_columns:
+        return
+
+    train_only = sorted(set(train_columns) - set(test_columns))
+    test_only = sorted(set(test_columns) - set(train_columns))
+    raise ValueError(
+        "Raw train/test schemas do not match. "
+        f"Train-only columns: {train_only or 'none'}. "
+        f"Test-only columns: {test_only or 'none'}."
+    )
+
+
 def infer_label_column(data: pd.DataFrame, explicit_label: str | None = None) -> str:
     """Infer the label column, or validate an explicit one."""
 
@@ -155,6 +172,41 @@ def drop_useless_columns(data: pd.DataFrame, label_column: str) -> tuple[pd.Data
     }
 
 
+def apply_column_drop_report(data: pd.DataFrame, label_column: str, drop_report: dict[str, Any]) -> pd.DataFrame:
+    """Apply the training-derived column drops to another split."""
+
+    features = data.drop(columns=[label_column], errors="ignore")
+    if TARGET_COLUMN not in features.columns:
+        raise ValueError(f"Expected {TARGET_COLUMN!r} after label filtering.")
+
+    target = features.pop(TARGET_COLUMN)
+    columns_to_drop = (
+        list(drop_report.get("identifier_like_columns", []))
+        + list(drop_report.get("constant_columns", []))
+        + list(drop_report.get("duplicate_columns", {}).keys())
+    )
+    aligned = features.drop(columns=columns_to_drop, errors="ignore").copy()
+    aligned[TARGET_COLUMN] = target.to_numpy()
+    return aligned
+
+
+def validate_feature_columns(train: pd.DataFrame, test: pd.DataFrame) -> None:
+    """Validate that train and test keep the same feature columns."""
+
+    train_features = [column for column in train.columns if column != TARGET_COLUMN]
+    test_features = [column for column in test.columns if column != TARGET_COLUMN]
+    if train_features == test_features:
+        return
+
+    train_only = sorted(set(train_features) - set(test_features))
+    test_only = sorted(set(test_features) - set(train_features))
+    raise ValueError(
+        "Processed train/test feature columns do not match. "
+        f"Train-only columns: {train_only or 'none'}. "
+        f"Test-only columns: {test_only or 'none'}."
+    )
+
+
 def detect_identifier_columns(features: pd.DataFrame) -> list[str]:
     """Detect obvious IDs, raw addresses, and timestamps by column name."""
 
@@ -208,31 +260,6 @@ def detect_column_types(features: pd.DataFrame) -> tuple[list[str], list[str]]:
         else:
             categorical_columns.append(column)
     return numeric_columns, categorical_columns
-
-
-def stratified_train_test_split(
-    data: pd.DataFrame,
-    test_size: float,
-    random_state: int,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Create a stratified train/test split without sklearn."""
-
-    if not 0 < test_size < 1:
-        raise ValueError("--test-size must be between 0 and 1.")
-
-    train_parts: list[pd.DataFrame] = []
-    test_parts: list[pd.DataFrame] = []
-    for class_value, group in data.groupby(TARGET_COLUMN, sort=True):
-        shuffled = group.sample(frac=1.0, random_state=random_state + int(class_value))
-        test_count = max(1, int(round(len(shuffled) * test_size)))
-        if test_count >= len(shuffled):
-            raise ValueError(f"Class {class_value} is too small for a stratified split.")
-        test_parts.append(shuffled.iloc[:test_count])
-        train_parts.append(shuffled.iloc[test_count:])
-
-    train = pd.concat(train_parts).sample(frac=1.0, random_state=random_state).reset_index(drop=True)
-    test = pd.concat(test_parts).sample(frac=1.0, random_state=random_state + 1).reset_index(drop=True)
-    return train, test
 
 
 def fit_transform_features(
@@ -375,29 +402,53 @@ def save_preprocessed_outputs(
 def run_preprocessing(args: Any) -> None:
     """Run the complete preprocessing workflow from parsed CLI args."""
 
-    files = find_dataset_files(args.input_path)
-    data = load_dataset(files, args.max_rows_per_file)
-    label_column = infer_label_column(data, args.label_column)
+    train_files = find_dataset_files(args.train_input_path)
+    test_files = find_dataset_files(args.test_input_path)
+    train_raw = load_dataset(train_files, args.max_rows_per_file)
+    test_raw = load_dataset(test_files, args.max_rows_per_file)
+    validate_matching_schema(train_raw, test_raw)
+
+    label_column = infer_label_column(train_raw, args.label_column)
+    if label_column not in test_raw.columns:
+        raise ValueError(f"Label column {label_column!r} is missing from the raw test data.")
+    if label_column == TARGET_COLUMN:
+        raw_label_column = "raw_target_label"
+        while raw_label_column in train_raw.columns or raw_label_column in test_raw.columns:
+            raw_label_column = f"_{raw_label_column}"
+        train_raw = train_raw.rename(columns={TARGET_COLUMN: raw_label_column})
+        test_raw = test_raw.rename(columns={TARGET_COLUMN: raw_label_column})
+        label_column = raw_label_column
     LOGGER.info("Using label column: %s", label_column)
 
-    data, filter_report = keep_benign_and_ddos(data, label_column)
-    data, cleaning_report = clean_rows(data)
-    data, drop_report = drop_useless_columns(data, label_column)
-
-    train, test = stratified_train_test_split(data, args.test_size, args.random_state)
+    train, train_filter_report = keep_benign_and_ddos(train_raw, label_column)
+    test, test_filter_report = keep_benign_and_ddos(test_raw, label_column)
+    train, train_cleaning_report = clean_rows(train)
+    test, test_cleaning_report = clean_rows(test)
+    train, drop_report = drop_useless_columns(train, label_column)
+    test = apply_column_drop_report(test, label_column, drop_report)
+    validate_feature_columns(train, test)
     train, test, encoding_report = fit_transform_features(train, test)
     train, rebalance_report = rebalance_training(train, args.rebalance, args.random_state)
     train, test, feature_scores = select_top_features(train, test, args.top_features)
 
     report = {
-        "input_files": [str(path) for path in files],
+        "input_files": {
+            "train": [str(path) for path in train_files],
+            "test": [str(path) for path in test_files],
+        },
         "label_column": label_column,
-        "filter": filter_report,
-        "cleaning": cleaning_report,
+        "train": {
+            "filter": train_filter_report,
+            "cleaning": train_cleaning_report,
+        },
+        "test": {
+            "filter": test_filter_report,
+            "cleaning": test_cleaning_report,
+        },
         "dropped_columns": drop_report,
         "encoding": encoding_report,
         "split": {
-            "test_size": args.test_size,
+            "source": "fixed_raw_train_and_test_files",
             "train_rows_after_rebalance_and_feature_selection": len(train),
             "test_rows": len(test),
             "train_class_counts": class_distribution(train[TARGET_COLUMN]),
@@ -408,4 +459,3 @@ def run_preprocessing(args: Any) -> None:
     }
     save_preprocessed_outputs(train, test, feature_scores, report, args.output_path)
     LOGGER.info("Saved processed files to %s", args.output_path)
-

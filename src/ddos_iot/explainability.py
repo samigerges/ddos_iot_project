@@ -44,6 +44,7 @@ def save_shap_explanations(
     max_display: int,
     model_agnostic_sample_size: int,
     random_state: int,
+    threshold: float = 0.5,
 ) -> dict[str, Any]:
     """Create and save SHAP global and local explanations for one fitted model."""
 
@@ -88,6 +89,7 @@ def save_shap_explanations(
         output_dir=output_dir,
         local_count=local_count,
         max_display=max_display,
+        threshold=threshold,
     )
 
     report = {
@@ -109,6 +111,90 @@ def save_shap_explanations(
     }
     write_json(output_dir / "shap_report.json", report)
     LOGGER.info("Saved SHAP explanations for %s to %s", model_name, output_dir)
+    return report
+
+
+def save_prediction_local_shap_explanations(
+    model: Any,
+    model_name: str,
+    x_background: pd.DataFrame,
+    x_explain: pd.DataFrame,
+    output_dir: Path,
+    threshold: float,
+    max_display: int,
+    model_agnostic_sample_size: int,
+    random_state: int,
+    target: pd.Series | None = None,
+    waterfall_count: int | None = None,
+) -> dict[str, Any]:
+    """Create and save local SHAP explanations for prediction-time inputs."""
+
+    import shap
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    start = time.perf_counter()
+    feature_columns = list(x_background.columns)
+    if feature_columns != list(x_explain.columns):
+        raise ValueError("Background and explain-data feature columns do not match for prediction SHAP.")
+
+    effective_sample_size = (
+        len(x_explain) if model_agnostic_sample_size <= 0 else model_agnostic_sample_size
+    )
+    explanation, method, explain_data = build_shap_explanation(
+        shap=shap,
+        model=model,
+        x_background=x_background,
+        x_explain=x_explain,
+        feature_columns=feature_columns,
+        model_agnostic_sample_size=effective_sample_size,
+        random_state=random_state,
+    )
+    shap_values = class_one_values(explanation.values)
+    base_values = class_one_base_values(explanation.base_values)
+    aligned_target = target.loc[explain_data.index] if target is not None else None
+    plotted_rows = save_local_shap_outputs(
+        shap=shap,
+        model=model,
+        shap_values=shap_values,
+        base_values=base_values,
+        x_explain=explain_data,
+        output_dir=output_dir,
+        local_count=len(explain_data),
+        max_display=max_display,
+        threshold=threshold,
+        target=aligned_target,
+        plot_count=waterfall_count,
+    )
+
+    requested_rows = int(len(x_explain))
+    explained_rows = int(len(explain_data))
+    waterfall_rows = explained_rows if waterfall_count is None or waterfall_count <= 0 else min(
+        int(waterfall_count),
+        explained_rows,
+    )
+    report = {
+        "model": model_name,
+        "method": method,
+        "feature_count": len(feature_columns),
+        "background_rows": int(len(x_background)),
+        "requested_rows": requested_rows,
+        "explained_rows": explained_rows,
+        "local_explanation_rows": explained_rows,
+        "waterfall_plot_rows": waterfall_rows,
+        "has_ground_truth": bool(target is not None),
+        "elapsed_seconds": float(time.perf_counter() - start),
+        "outputs": [
+            "shap_local_top_features.csv",
+            "shap_local_waterfall_*.png",
+        ],
+    }
+    write_json(output_dir / "shap_report.json", report)
+    LOGGER.info(
+        "Saved prediction-time local SHAP explanations for %s to %s (%s rows)",
+        model_name,
+        output_dir,
+        len(plotted_rows["row_position"].unique()) if not plotted_rows.empty else 0,
+    )
     return report
 
 
@@ -221,11 +307,35 @@ def save_local_shap_outputs(
     output_dir: Path,
     local_count: int,
     max_display: int,
-) -> None:
+    threshold: float = 0.5,
+    target: pd.Series | None = None,
+    plot_count: int | None = None,
+) -> pd.DataFrame:
     """Save row-level SHAP explanations and waterfall plots."""
 
     local_rows = min(local_count, len(x_explain))
+    if local_rows <= 0:
+        empty = pd.DataFrame(
+            columns=[
+                "sample_index",
+                "row_position",
+                "y_true",
+                "y_score",
+                "y_pred",
+                "feature",
+                "feature_value",
+                "shap_value",
+                "abs_shap_value",
+            ]
+        )
+        empty.to_csv(output_dir / "shap_local_top_features.csv", index=False)
+        return empty
+
+    waterfall_rows = (
+        local_rows if plot_count is None or plot_count <= 0 else min(int(plot_count), local_rows)
+    )
     scores = predict_scores(model, x_explain.iloc[:local_rows])
+    target_values = target.to_numpy(dtype=int)[:local_rows] if target is not None else None
     records: list[dict[str, Any]] = []
 
     for row_position in range(local_rows):
@@ -234,32 +344,40 @@ def save_local_shap_outputs(
         sample_index = x_explain.index[row_position]
         for feature_position in top_positions:
             feature = x_explain.columns[feature_position]
-            records.append(
-                {
-                    "sample_index": int(sample_index),
-                    "row_position": int(row_position),
-                    "y_score": float(scores[row_position]),
-                    "y_pred": int(scores[row_position] >= 0.5),
-                    "feature": feature,
-                    "feature_value": float(x_explain.iloc[row_position, feature_position]),
-                    "shap_value": float(row_values[feature_position]),
-                    "abs_shap_value": float(abs(row_values[feature_position])),
-                }
+            record = {
+                "sample_index": int(sample_index),
+                "row_position": int(row_position),
+                "y_score": float(scores[row_position]),
+                "y_pred": int(scores[row_position] >= threshold),
+                "feature": feature,
+                "feature_value": float(x_explain.iloc[row_position, feature_position]),
+                "shap_value": float(row_values[feature_position]),
+                "abs_shap_value": float(abs(row_values[feature_position])),
+            }
+            if target_values is not None:
+                record["y_true"] = int(target_values[row_position])
+            records.append(record)
+
+        if row_position < waterfall_rows:
+            base_value = row_base_value(base_values, row_position)
+            explanation = shap.Explanation(
+                values=row_values,
+                base_values=base_value,
+                data=x_explain.iloc[row_position].to_numpy(),
+                feature_names=list(x_explain.columns),
             )
+            shap.plots.waterfall(explanation, max_display=max_display, show=False)
+            plt.tight_layout()
+            plt.savefig(
+                output_dir / f"shap_local_waterfall_{row_position:03d}.png",
+                dpi=160,
+                bbox_inches="tight",
+            )
+            plt.close()
 
-        base_value = row_base_value(base_values, row_position)
-        explanation = shap.Explanation(
-            values=row_values,
-            base_values=base_value,
-            data=x_explain.iloc[row_position].to_numpy(),
-            feature_names=list(x_explain.columns),
-        )
-        shap.plots.waterfall(explanation, max_display=max_display, show=False)
-        plt.tight_layout()
-        plt.savefig(output_dir / f"shap_local_waterfall_{row_position:03d}.png", dpi=160, bbox_inches="tight")
-        plt.close()
-
-    pd.DataFrame(records).to_csv(output_dir / "shap_local_top_features.csv", index=False)
+    frame = pd.DataFrame(records)
+    frame.to_csv(output_dir / "shap_local_top_features.csv", index=False)
+    return frame
 
 
 def row_base_value(base_values: np.ndarray | float, row_position: int) -> float:

@@ -17,14 +17,20 @@ from ddos_iot.paths import (
     PROCESSED_DATA_DIR,
     PROJECT_ROOT,
     RAW_DATA_DIR,
+    RAW_TEST_FILE,
+    RAW_TRAIN_FILE,
 )
 
 
 TARGET_COLUMN = "target"
+PIPELINE_PREPROCESS_RESULT_KEY = "pipeline_preprocess_result"
+PIPELINE_TRAINING_RESULT_KEY = "pipeline_training_result"
+PIPELINE_TRAINING_CONTEXT_KEY = "pipeline_training_context"
+PIPELINE_TRAIN_SAMPLE_SIZE_KEY = "pipeline_train_sample_size"
 
 
 st.set_page_config(
-    page_title="IoT DDoS Detection",
+    page_title="IoT Intrusion Detection",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -33,10 +39,21 @@ st.set_page_config(
 def main() -> None:
     """Render the dashboard."""
 
-    st.title("IoT DDoS Detection")
+    st.title("IoT Intrusion Detection")
     st.caption(
         "Preprocess traffic flows, compare models, inspect SHAP explanations, and run predictions."
     )
+
+    problem = st.sidebar.selectbox(
+        "Classification problem",
+        ("Binary — Benign vs DDoS", "8 classes — Attack families", "34 classes — Original labels"),
+        key="classification_problem",
+    )
+    if problem != "Binary — Benign vs DDoS":
+        from ddos_iot.dashboard_multiclass import render_multiclass
+
+        render_multiclass(8 if problem.startswith("8 ") else 34)
+        return
 
     page = st.sidebar.radio(
         "View",
@@ -61,18 +78,25 @@ def render_overview() -> None:
     """Render project status cards."""
 
     raw_files = list(RAW_DATA_DIR.rglob("*.csv")) if RAW_DATA_DIR.exists() else []
-    processed_train = PROCESSED_DATA_DIR / "train.csv"
     comparison_file = MODEL_COMPARISON_DIR / "model_comparison.csv"
     best_report = read_json(MODEL_COMPARISON_DIR / "model_comparison_report.json")
 
-    columns = st.columns(4)
+    columns = st.columns(2)
     columns[0].metric("Raw CSV files", len(raw_files))
-    columns[1].metric("Processed train", "Ready" if processed_train.exists() else "Missing")
-    columns[2].metric("Model comparison", "Ready" if comparison_file.exists() else "Missing")
-    columns[3].metric("Best model", best_model_name(best_report))
+    columns[1].metric("Best model", best_model_name(best_report))
 
     st.subheader("Project Outputs")
     output_rows = [
+        {
+            "artifact": "Raw train data",
+            "path": short_path(RAW_TRAIN_FILE),
+            "status": path_status(RAW_TRAIN_FILE),
+        },
+        {
+            "artifact": "Raw test data",
+            "path": short_path(RAW_TEST_FILE),
+            "status": path_status(RAW_TEST_FILE),
+        },
         {
             "artifact": "Processed data",
             "path": short_path(PROCESSED_DATA_DIR),
@@ -102,89 +126,194 @@ def render_pipeline_runner() -> None:
     """Render controls for running the pipeline."""
 
     st.subheader("Run Pipeline")
-    with st.form("pipeline_form"):
-        left, right = st.columns(2)
-        input_path = left.text_input("Input path", value=str(RAW_DATA_DIR.relative_to(PROJECT_ROOT)))
-        processed_path = left.text_input(
-            "Processed path",
-            value=str(PROCESSED_DATA_DIR.relative_to(PROJECT_ROOT)),
-        )
-        output_path = left.text_input(
-            "Models output path",
-            value=str(MODEL_COMPARISON_DIR.relative_to(PROJECT_ROOT)),
-        )
-        top_features = left.number_input("Top features", min_value=1, max_value=100, value=25, step=1)
-        test_size = left.slider("Test size", min_value=0.05, max_value=0.50, value=0.20, step=0.05)
-        rebalance = left.selectbox("Training rebalance", ("undersample", "none", "oversample"))
+    st.caption("Training uses the raw train CSV, and evaluation uses the raw test CSV.")
+    st.caption("Step 1 creates processed train/test files. Step 2 trains on an allowed number of processed train rows.")
 
-        explain_shap = right.checkbox("Generate SHAP", value=True)
-        shap_for_all = right.checkbox("SHAP for all models", value=False)
-        skip_preprocess = right.checkbox("Skip preprocessing", value=False)
-        no_plots = right.checkbox("Skip plots", value=False)
-        max_rows = right.number_input("Max rows per raw file", min_value=0, value=0, step=1000)
-        verbose = right.checkbox("Verbose logs", value=False)
+    left, right = st.columns(2)
+    train_input_path = left.text_input(
+        "Train input path",
+        value=str(RAW_TRAIN_FILE.relative_to(PROJECT_ROOT)),
+    )
+    test_input_path = left.text_input(
+        "Test input path",
+        value=str(RAW_TEST_FILE.relative_to(PROJECT_ROOT)),
+    )
+    processed_path = left.text_input(
+        "Processed path",
+        value=str(PROCESSED_DATA_DIR.relative_to(PROJECT_ROOT)),
+    )
+    output_path = left.text_input(
+        "Models output path",
+        value=str(MODEL_COMPARISON_DIR.relative_to(PROJECT_ROOT)),
+    )
+    top_features = left.number_input("Top features", min_value=1, max_value=100, value=25, step=1)
+    rebalance = left.selectbox("Training rebalance", ("undersample", "none", "oversample"))
 
-        submitted = st.form_submit_button("Run")
+    explain_shap = right.checkbox("Generate SHAP", value=True)
+    shap_for_all = right.checkbox("SHAP for all models", value=False)
+    no_plots = right.checkbox("Skip plots", value=False)
+    max_rows = right.number_input("Max rows per raw file", min_value=0, value=0, step=1000)
+    verbose = right.checkbox("Verbose logs", value=False)
+    preprocess_state = st.session_state.get(PIPELINE_PREPROCESS_RESULT_KEY)
+    training_state = st.session_state.get(PIPELINE_TRAINING_RESULT_KEY)
 
-    if submitted:
-        command = [
+    st.markdown("**Step 1: Preprocess Data**")
+    st.caption("This creates the processed train and test files that training will use.")
+    if st.button("Run Preprocessing", key="run_preprocessing_button"):
+        preprocess_command = [
             sys.executable,
-            "run.py",
-            "--input-path",
-            input_path,
-            "--processed-path",
+            "src/preprocess.py",
+            "--train-input-path",
+            train_input_path,
+            "--test-input-path",
+            test_input_path,
+            "--output-path",
             processed_path,
-            "--models-output-path",
-            output_path,
             "--top-features",
             str(top_features),
-            "--test-size",
-            str(test_size),
             "--rebalance",
             rebalance,
         ]
-        if explain_shap:
-            command.append("--explain-shap")
-        if shap_for_all:
-            command.append("--shap-for-all-models")
-        if skip_preprocess:
-            command.append("--skip-preprocess")
-        if no_plots:
-            command.append("--no-plots")
         if max_rows > 0:
-            command.extend(["--max-rows-per-file", str(max_rows)])
+            preprocess_command.extend(["--max-rows-per-file", str(max_rows)])
         if verbose:
-            command.append("--verbose")
+            preprocess_command.append("--verbose")
 
-        run_command(command)
+        preprocess_result = run_command(preprocess_command)
+        st.session_state[PIPELINE_PREPROCESS_RESULT_KEY] = snapshot_command_result(preprocess_result)
+        if preprocess_result.returncode == 0:
+            clear_dashboard_caches()
+            st.session_state.pop(PIPELINE_TRAINING_RESULT_KEY, None)
+            st.session_state.pop(PIPELINE_TRAINING_CONTEXT_KEY, None)
+        preprocess_state = st.session_state.get(PIPELINE_PREPROCESS_RESULT_KEY)
+        training_state = st.session_state.get(PIPELINE_TRAINING_RESULT_KEY)
+
+    processed_summary = read_processed_split_summary(resolve_dashboard_path(processed_path))
+    available_train_rows = processed_summary["train_rows"] if processed_summary else None
+    available_test_rows = processed_summary["test_rows"] if processed_summary else None
+    available_feature_count = processed_summary["feature_count"] if processed_summary else None
+
+    if isinstance(preprocess_state, dict):
+        preprocess_summary_metrics: dict[str, str] | None = None
+        if available_train_rows is not None and available_test_rows is not None:
+            preprocess_summary_metrics = {
+                "Processed train rows": f"{available_train_rows:,}",
+                "Processed test rows": f"{available_test_rows:,}",
+                "Allowed training samples": format_allowed_training_samples(available_train_rows),
+            }
+        render_command_summary(
+            "Preprocessing Summary",
+            restore_command_result(preprocess_state),
+            extra_metrics=preprocess_summary_metrics,
+            key_prefix="pipeline_preprocess",
+        )
+
+    st.markdown("**Step 2: Train And Compare Models**")
+    if available_train_rows is None or available_test_rows is None:
+        st.info("Run preprocessing first so the dashboard can detect the allowed training sample range.")
+        return
+
+    if available_train_rows < 2:
+        st.error("The processed training split must contain at least 2 rows before training can run.")
+        return
+
+    requested_sample_size = int(st.session_state.get(PIPELINE_TRAIN_SAMPLE_SIZE_KEY, available_train_rows))
+    st.session_state[PIPELINE_TRAIN_SAMPLE_SIZE_KEY] = min(max(requested_sample_size, 2), available_train_rows)
+    train_sample_step = 1000 if available_train_rows >= 1000 else max(1, available_train_rows // 10 or 1)
+    train_sample_size = st.number_input(
+        "Training samples after preprocessing",
+        min_value=2,
+        max_value=available_train_rows,
+        step=train_sample_step,
+        key=PIPELINE_TRAIN_SAMPLE_SIZE_KEY,
+        help="This value is limited to the processed training rows currently available.",
+    )
+
+    if st.button("Run Training And Comparison", key="run_training_button"):
+        training_command = [
+            sys.executable,
+            "src/compare_models.py",
+            "--processed-path",
+            processed_path,
+            "--output-path",
+            output_path,
+            "--train-sample-size",
+            str(train_sample_size),
+        ]
+        if explain_shap:
+            training_command.append("--explain-shap")
+        if shap_for_all:
+            training_command.append("--shap-for-all-models")
+        if no_plots:
+            training_command.append("--no-plots")
+        if verbose:
+            training_command.append("--verbose")
+
+        training_result = run_command(training_command)
+        training_state = snapshot_command_result(training_result)
+        training_state["train_sample_size"] = int(train_sample_size)
+        training_state["feature_count"] = int(available_feature_count or 0)
+        st.session_state[PIPELINE_TRAINING_RESULT_KEY] = training_state
+        if training_result.returncode == 0:
+            clear_dashboard_caches()
+            training_context_path = resolve_dashboard_path(output_path) / "training_sample_summary.json"
+            training_context = read_json(training_context_path)
+            if isinstance(training_context, dict):
+                st.session_state[PIPELINE_TRAINING_CONTEXT_KEY] = training_context
+
+    if isinstance(training_state, dict):
+        render_command_summary(
+            "Training Summary",
+            restore_command_result(training_state),
+            extra_metrics={
+                "Training samples": f"{int(training_state.get('train_sample_size', 0)):,}",
+                "Features": f"{int(training_state.get('feature_count', 0)):,}",
+            },
+            key_prefix="pipeline_training",
+        )
 
 
 def render_dataset_page() -> None:
     """Render processed dataset and preprocessing summaries."""
 
     st.subheader("Dataset")
+    st.caption("Processed train and test files come from the raw train/test CSVs, not an internal split.")
+    st.caption("Train-side stats reflect the latest sampled training data when a training run is available.")
     report = read_json(PROCESSED_DATA_DIR / "preprocessing_report.json")
-    train_path = PROCESSED_DATA_DIR / "train.csv"
-    test_path = PROCESSED_DATA_DIR / "test.csv"
-
-    if not train_path.exists() or not test_path.exists():
+    processed_summary = read_processed_split_summary(PROCESSED_DATA_DIR)
+    if processed_summary is None:
         st.info("Processed train/test files are missing. Run preprocessing first.")
         return
 
-    train = read_csv(train_path)
-    test = read_csv(test_path)
+    training_summary = resolve_training_summary(
+        processed_summary["train_rows"],
+        processed_summary["feature_count"],
+        processed_summary["train_class_counts"],
+    )
+
+    raw_sources = extract_raw_sources(report)
+    if raw_sources:
+        st.subheader("Raw Sources")
+        st.dataframe(pd.DataFrame(raw_sources), use_container_width=True, hide_index=True)
+
     columns = st.columns(4)
-    columns[0].metric("Train rows", f"{len(train):,}")
-    columns[1].metric("Test rows", f"{len(test):,}")
-    columns[2].metric("Features", train.shape[1] - 1)
+    columns[0].metric("Train rows", f"{training_summary['train_rows_used']:,}")
+    columns[1].metric("Test rows", f"{processed_summary['test_rows']:,}")
+    columns[2].metric("Features", f"{training_summary['feature_count']:,}")
     columns[3].metric("Target", TARGET_COLUMN)
 
     st.subheader("Class Distribution")
     class_counts = pd.DataFrame(
         {
             "split": ["train", "test"],
-            "benign": [int((train[TARGET_COLUMN] == 0).sum()), int((test[TARGET_COLUMN] == 0).sum())],
-            "ddos": [int((train[TARGET_COLUMN] == 1).sum()), int((test[TARGET_COLUMN] == 1).sum())],
+            "benign": [
+                int(training_summary["class_counts"].get("0", 0)),
+                int(processed_summary["test_class_counts"].get("0", 0)),
+            ],
+            "ddos": [
+                int(training_summary["class_counts"].get("1", 0)),
+                int(processed_summary["test_class_counts"].get("1", 0)),
+            ],
         }
     )
     st.dataframe(class_counts, use_container_width=True, hide_index=True)
@@ -212,7 +341,17 @@ def render_model_comparison_page() -> None:
         return
 
     comparison = read_csv(comparison_path)
-    st.metric("Best model", best_model_name(report))
+    training_summary = read_latest_training_summary()
+    summary_cols = st.columns(3)
+    summary_cols[0].metric("Best model", best_model_name(report))
+    summary_cols[1].metric(
+        "Training rows",
+        format_count_or_missing(training_summary.get("train_rows_used") if isinstance(training_summary, dict) else None),
+    )
+    summary_cols[2].metric(
+        "Features",
+        format_count_or_missing(training_summary.get("feature_count") if isinstance(training_summary, dict) else None),
+    )
     st.dataframe(comparison, use_container_width=True, hide_index=True)
 
     metric_columns = [
@@ -245,6 +384,7 @@ def render_model_detail(model_dir: Path) -> None:
     """Render artifacts for one model directory."""
 
     metrics = read_json(model_dir / "metrics.json")
+    metadata = read_json(model_dir / "model_metadata.json")
     if metrics:
         test_metrics = metrics.get("test", {})
         cols = st.columns(4)
@@ -252,6 +392,10 @@ def render_model_detail(model_dir: Path) -> None:
         cols[1].metric("Recall", format_metric(test_metrics.get("recall")))
         cols[2].metric("Precision", format_metric(test_metrics.get("precision")))
         cols[3].metric("Inference", f"{test_metrics.get('inference_time_seconds', 0):.3f}s")
+    if isinstance(metadata, dict):
+        metadata_cols = st.columns(2)
+        metadata_cols[0].metric("Training rows", format_count_or_missing(metadata.get("train_rows_used")))
+        metadata_cols[1].metric("Features", format_count_or_missing(metadata.get("feature_count")))
 
     render_images(
         [
@@ -280,12 +424,17 @@ def render_shap_page() -> None:
 
     shap_dir = st.selectbox("Model explanations", shap_dirs, format_func=lambda path: path.parent.name)
     report = read_json(shap_dir / "shap_report.json")
+    metadata = read_json(shap_dir.parent / "model_metadata.json")
     if report:
         cols = st.columns(4)
         cols[0].metric("Method", str(report.get("method", "unknown")))
         cols[1].metric("Explained rows", report.get("explained_rows", 0))
         cols[2].metric("Background rows", report.get("background_rows", 0))
         cols[3].metric("Local rows", report.get("local_explanation_rows", 0))
+    if isinstance(metadata, dict):
+        metadata_cols = st.columns(2)
+        metadata_cols[0].metric("Training rows", format_count_or_missing(metadata.get("train_rows_used")))
+        metadata_cols[1].metric("Features", format_count_or_missing(metadata.get("feature_count")))
 
     importance_path = shap_dir / "shap_global_importance.csv"
     if importance_path.exists():
@@ -317,16 +466,23 @@ def render_predict_page() -> None:
         st.info("No trained model exists yet. Run training or model comparison first.")
         return
 
-    model_path = st.selectbox("Model", model_files, format_func=lambda path: path.parent.name)
-    uploaded_file = st.file_uploader("Processed CSV", type=["csv"])
-    threshold = st.slider("Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
+    left, right = st.columns(2)
+    model_path = left.selectbox("Model", model_files, format_func=lambda path: path.parent.name)
+    uploaded_file = left.file_uploader("Processed CSV", type=["csv"])
+    threshold = left.slider("Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
+    explain_local_shap = right.checkbox("Generate local SHAP", value=True)
+    shap_waterfall_count = right.number_input("Waterfall plots", min_value=1, max_value=50, value=10, step=1)
+    shap_max_display = right.number_input("Top SHAP features", min_value=1, max_value=50, value=15, step=1)
+    verbose = right.checkbox("Verbose logs", value=False)
+    prediction_state = st.session_state.get("predict_page_result")
 
     if st.button("Predict", disabled=uploaded_file is None):
         PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
         upload_path = PREDICTIONS_DIR / "uploaded_prediction_input.csv"
         output_path = PREDICTIONS_DIR / "ui_predictions.csv"
+        shap_output_dir = PREDICTIONS_DIR / "ui_predictions_shap"
         upload_path.write_bytes(uploaded_file.getbuffer())
-        command = [
+        prediction_command = [
             sys.executable,
             "src/predict.py",
             "--model-path",
@@ -338,9 +494,36 @@ def render_predict_page() -> None:
             "--threshold",
             str(threshold),
         ]
-        run_command(command)
-        if output_path.exists():
-            predictions = read_csv(output_path)
+        if verbose:
+            prediction_command.append("--verbose")
+
+        prediction_result = run_command(
+            prediction_command,
+            spinner_text="Running prediction...",
+            show_command=False,
+        )
+        clear_dashboard_caches()
+        predictions = (
+            read_csv(output_path)
+            if prediction_result.returncode == 0 and output_path.exists()
+            else None
+        )
+        metrics = read_json(output_path.with_suffix(".metrics.json")) if prediction_result.returncode == 0 else None
+        prediction_state = {
+            "prediction_returncode": prediction_result.returncode,
+            "predictions": predictions,
+            "metrics": metrics,
+            "output_path": str(output_path),
+            "shap_requested": bool(explain_local_shap),
+            "shap_output_dir": str(shap_output_dir),
+            "shap_report": None,
+            "shap_error": None,
+        }
+        st.session_state["predict_page_result"] = prediction_state
+
+        if prediction_result.returncode == 0 and output_path.exists():
+            assert predictions is not None
+            st.subheader("Predictions")
             st.dataframe(predictions.head(1000), use_container_width=True, hide_index=True)
             st.download_button(
                 "Download predictions",
@@ -349,29 +532,225 @@ def render_predict_page() -> None:
                 mime="text/csv",
             )
 
+        render_prediction_summary(
+            result=prediction_result,
+            predictions=predictions,
+            metrics=metrics,
+        )
 
-def run_command(command: list[str]) -> None:
-    """Run a project command and stream captured output into the UI."""
+        shap_report = None
+        shap_error = None
+        if prediction_result.returncode == 0 and output_path.exists() and explain_local_shap:
+            shap_status = st.empty()
+            shap_status.info("Generating local SHAP...")
+            shap_command = [
+                *prediction_command,
+                "--explain-local-shap",
+                "--shap-output-dir",
+                str(shap_output_dir),
+                "--shap-background-size",
+                "200",
+                "--shap-waterfall-count",
+                str(shap_waterfall_count),
+                "--shap-max-display",
+                str(shap_max_display),
+            ]
+            shap_result = run_command(
+                shap_command,
+                spinner_text="Generating local SHAP...",
+                show_command=False,
+            )
+            clear_dashboard_caches()
+            shap_report = read_json(shap_output_dir / "shap_report.json") if shap_result.returncode == 0 else None
+            shap_error = read_json(shap_output_dir / "shap_error.json")
+            prediction_state["shap_report"] = shap_report
+            prediction_state["shap_error"] = shap_error
+            st.session_state["predict_page_result"] = prediction_state
+            if shap_result.returncode == 0 and isinstance(shap_report, dict):
+                shap_status.success("Local SHAP is ready.")
+            else:
+                shap_status.warning("Local SHAP could not be generated.")
+            render_prediction_local_shap(shap_output_dir, shap_report, shap_error)
 
-    st.code(" ".join(command), language="powershell")
-    with st.spinner("Running command..."):
-        result = subprocess.run(
+        return
+
+    if not prediction_state:
+        return
+
+    predictions = prediction_state.get("predictions")
+    metrics = prediction_state.get("metrics")
+    output_path = Path(str(prediction_state.get("output_path", "")))
+    prediction_returncode = int(prediction_state.get("prediction_returncode", 1))
+    shap_requested = bool(prediction_state.get("shap_requested", False))
+    shap_output_dir = Path(str(prediction_state.get("shap_output_dir", "")))
+    shap_report = prediction_state.get("shap_report")
+    shap_error = prediction_state.get("shap_error")
+
+    if prediction_returncode == 0 and output_path.exists():
+        assert isinstance(predictions, pd.DataFrame)
+        st.subheader("Predictions")
+        st.dataframe(predictions.head(1000), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download predictions",
+            data=output_path.read_bytes(),
+            file_name="predictions.csv",
+            mime="text/csv",
+        )
+
+    render_prediction_summary(
+        result=build_completed_process(prediction_returncode),
+        predictions=predictions if isinstance(predictions, pd.DataFrame) else None,
+        metrics=metrics if isinstance(metrics, (dict, list)) else None,
+    )
+
+    if prediction_returncode == 0 and output_path.exists() and shap_requested:
+        render_prediction_local_shap(
+            shap_output_dir,
+            shap_report if isinstance(shap_report, (dict, list)) else None,
+            shap_error if isinstance(shap_error, (dict, list)) else None,
+        )
+
+
+def run_command(
+    command: list[str],
+    *,
+    spinner_text: str = "Running command...",
+    show_command: bool = True,
+) -> subprocess.CompletedProcess[str]:
+    """Run a project command and return the captured result."""
+
+    if show_command:
+        st.code(" ".join(command), language="powershell")
+    with st.spinner(spinner_text):
+        return subprocess.run(
             command,
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
             check=False,
         )
+
+
+def build_completed_process(returncode: int) -> subprocess.CompletedProcess[str]:
+    """Build a minimal completed-process shape for stored UI state."""
+
+    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout="", stderr="")
+
+
+def snapshot_command_result(result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+    """Store the useful parts of a completed process in session state."""
+
+    return {
+        "returncode": int(result.returncode),
+        "stdout": result.stdout or "",
+        "stderr": result.stderr or "",
+    }
+
+
+def restore_command_result(state: dict[str, Any]) -> subprocess.CompletedProcess[str]:
+    """Rebuild a completed-process-like object from stored session state."""
+
+    return subprocess.CompletedProcess(
+        args=[],
+        returncode=int(state.get("returncode", 1)),
+        stdout=str(state.get("stdout", "")),
+        stderr=str(state.get("stderr", "")),
+    )
+
+
+def render_command_summary(
+    title: str,
+    result: subprocess.CompletedProcess[str],
+    *,
+    extra_metrics: dict[str, str] | None = None,
+    key_prefix: str | None = None,
+) -> None:
+    """Render a compact command summary with captured logs."""
+
+    st.subheader(title)
+    summary_metrics: list[tuple[str, str | int]] = [
+        ("Status", "Success" if result.returncode == 0 else "Failed"),
+    ]
+    if extra_metrics:
+        summary_metrics.extend(extra_metrics.items())
+
+    cols = st.columns(len(summary_metrics))
+    for column, (label, value) in zip(cols, summary_metrics):
+        column.metric(label, value)
+
+    widget_prefix = key_prefix or title.lower().replace(" ", "_")
     if result.stdout:
-        st.text_area("Output", result.stdout, height=240)
-    if result.stderr:
-        st.text_area("Logs", result.stderr, height=240)
-    if result.returncode == 0:
-        st.success("Command finished successfully.")
+        st.text_area("Output", result.stdout, height=200, key=f"{widget_prefix}_output")
+
+
+def render_prediction_summary(
+    result: subprocess.CompletedProcess[str],
+    predictions: pd.DataFrame | None,
+    metrics: dict[str, Any] | list[Any] | None,
+) -> None:
+    """Render prediction metrics in one summary block."""
+
+    st.subheader("Summary")
+    has_ground_truth = isinstance(metrics, dict) and "accuracy" in metrics
+    cols = st.columns(3)
+    cols[0].metric("Prediction rows", f"{len(predictions):,}" if predictions is not None else "Missing")
+    if isinstance(metrics, dict):
+        cols[1].metric("Inference", format_duration_seconds(metrics.get("inference_time_seconds")))
+        cols[2].metric(
+            "Inference / row",
+            format_duration_milliseconds(metrics.get("inference_time_per_row_ms")),
+        )
     else:
-        st.error(f"Command failed with exit code {result.returncode}.")
+        cols[1].metric("Inference", "Missing")
+        cols[2].metric("Inference / row", "Missing")
+
+    if has_ground_truth and isinstance(metrics, dict):
+        metric_cols = st.columns(4)
+        metric_cols[0].metric("Accuracy", format_metric(metrics.get("accuracy")))
+        metric_cols[1].metric("Precision", format_metric(metrics.get("precision")))
+        metric_cols[2].metric("Recall", format_metric(metrics.get("recall")))
+        metric_cols[3].metric("F1", format_metric(metrics.get("f1")))
+    elif result.returncode != 0:
+        st.error(f"Prediction command failed with exit code {result.returncode}.")
 
 
+def render_prediction_local_shap(
+    shap_output_dir: Path,
+    shap_report: dict[str, Any] | list[Any] | None,
+    shap_error: dict[str, Any] | list[Any] | None,
+) -> None:
+    """Render prediction-time local SHAP outputs when available."""
+
+    st.subheader("Local SHAP")
+    if isinstance(shap_error, dict) and not isinstance(shap_report, dict):
+        st.warning(f"Local SHAP failed: {shap_error.get('error', 'Unknown error')}")
+        return
+
+    local_table = shap_output_dir / "shap_local_top_features.csv"
+    if not local_table.exists():
+        st.info("No local SHAP outputs are available for this prediction run.")
+        return
+
+    if isinstance(shap_report, dict):
+        cols = st.columns(4)
+        cols[0].metric("Method", str(shap_report.get("method", "unknown")))
+        cols[1].metric("Background rows", shap_report.get("background_rows", 0))
+        cols[2].metric("Explained rows", shap_report.get("explained_rows", 0))
+        cols[3].metric("Waterfall plots", shap_report.get("waterfall_plot_rows", 0))
+
+    st.dataframe(read_csv(local_table), use_container_width=True, hide_index=True)
+    waterfall_images = sorted(shap_output_dir.glob("shap_local_waterfall_*.png"))
+    if waterfall_images:
+        selected = st.selectbox(
+            "Prediction waterfall plot",
+            waterfall_images,
+            format_func=lambda path: path.stem,
+            key="predict_waterfall_plot",
+        )
+        st.image(str(selected))
+
+
+@st.cache_data(show_spinner=False)
 def read_json(path: Path) -> dict[str, Any] | list[Any] | None:
     """Read JSON if it exists."""
 
@@ -386,6 +765,51 @@ def read_csv(path: Path) -> pd.DataFrame:
     """Read a CSV file with Streamlit caching."""
 
     return pd.read_csv(path)
+
+
+@st.cache_data(show_spinner=False)
+def count_csv_rows(path: Path) -> int:
+    """Count CSV data rows without loading the full file into a dataframe."""
+
+    with path.open("r", encoding="utf-8", newline="") as file:
+        row_count = sum(1 for _ in file)
+    return max(row_count - 1, 0)
+
+
+@st.cache_data(show_spinner=False)
+def count_processed_feature_columns(path: Path) -> int:
+    """Count processed feature columns from a CSV header."""
+
+    columns = pd.read_csv(path, nrows=0).columns
+    return max(len(columns) - (1 if TARGET_COLUMN in columns else 0), 0)
+
+
+@st.cache_data(show_spinner=False)
+def read_target_class_counts(path: Path) -> dict[str, int]:
+    """Read binary target counts from a processed CSV."""
+
+    target = pd.read_csv(path, usecols=[TARGET_COLUMN])[TARGET_COLUMN].astype(int)
+    counts = target.value_counts().sort_index()
+    return {str(int(label)): int(count) for label, count in counts.items()}
+
+
+def read_processed_split_summary(processed_dir: Path) -> dict[str, Any] | None:
+    """Read lightweight processed train/test summary values."""
+
+    train_path = processed_dir / "train.csv"
+    test_path = processed_dir / "test.csv"
+    if not train_path.exists() or not test_path.exists():
+        return None
+
+    return {
+        "train_path": train_path,
+        "test_path": test_path,
+        "train_rows": count_csv_rows(train_path),
+        "test_rows": count_csv_rows(test_path),
+        "feature_count": count_processed_feature_columns(train_path),
+        "train_class_counts": read_target_class_counts(train_path),
+        "test_class_counts": read_target_class_counts(test_path),
+    }
 
 
 def available_model_dirs() -> list[Path]:
@@ -420,6 +844,127 @@ def best_model_name(report: dict[str, Any] | list[Any] | None) -> str:
     return str(best.get("model", "Missing"))
 
 
+def resolve_training_summary(
+    default_rows: int,
+    default_feature_count: int,
+    default_class_counts: dict[str, int],
+) -> dict[str, Any]:
+    """Merge the latest sampled training context with processed-data defaults."""
+
+    summary = read_latest_training_summary()
+    if not isinstance(summary, dict):
+        return {
+            "train_rows_used": default_rows,
+            "feature_count": default_feature_count,
+            "class_counts": default_class_counts,
+        }
+
+    train_rows_used = summary.get("train_rows_used")
+    feature_count = summary.get("feature_count")
+    class_counts = summary.get("class_counts")
+    return {
+        "train_rows_used": min(int(train_rows_used), default_rows)
+        if isinstance(train_rows_used, int) and train_rows_used > 0
+        else default_rows,
+        "feature_count": int(feature_count)
+        if isinstance(feature_count, int) and feature_count > 0
+        else default_feature_count,
+        "class_counts": normalize_class_counts(class_counts, default_class_counts),
+    }
+
+
+def read_latest_training_summary() -> dict[str, Any] | None:
+    """Read the saved summary for the latest sampled training run, when available."""
+
+    training_context = st.session_state.get(PIPELINE_TRAINING_CONTEXT_KEY)
+    if isinstance(training_context, dict):
+        return training_context
+
+    metadata = read_latest_model_metadata()
+    if not isinstance(metadata, dict):
+        return None
+
+    summary = metadata.get("training_summary")
+    if isinstance(summary, dict):
+        return summary
+
+    summary_path = metadata.get("training_summary_path")
+    if isinstance(summary_path, str):
+        loaded_summary = read_json(resolve_dashboard_path(summary_path))
+        if isinstance(loaded_summary, dict):
+            return loaded_summary
+
+    train_rows_used = metadata.get("train_rows_used")
+    feature_count = metadata.get("feature_count")
+    class_counts = metadata.get("train_class_counts")
+    if isinstance(train_rows_used, int) and isinstance(feature_count, int):
+        return {
+            "train_rows_used": train_rows_used,
+            "feature_count": feature_count,
+            "class_counts": class_counts if isinstance(class_counts, dict) else {},
+        }
+
+    training_args = metadata.get("training_args")
+    if isinstance(training_args, dict):
+        train_sample_size = training_args.get("train_sample_size")
+        if isinstance(train_sample_size, int) and train_sample_size > 0:
+            return {
+                "train_rows_used": train_sample_size,
+                "feature_count": int(metadata.get("feature_count", 0) or 0),
+                "class_counts": class_counts if isinstance(class_counts, dict) else {},
+            }
+    return None
+
+
+def normalize_class_counts(value: Any, fallback: dict[str, int]) -> dict[str, int]:
+    """Normalize binary class-count dictionaries and fall back when needed."""
+
+    if not isinstance(value, dict):
+        return fallback
+
+    normalized = {
+        str(label): int(count)
+        for label, count in value.items()
+        if str(label) in {"0", "1"}
+    }
+    return normalized if normalized else fallback
+
+
+def read_latest_model_metadata() -> dict[str, Any] | None:
+    """Read the saved metadata for the latest selected best model, when available."""
+
+    report = read_json(MODEL_COMPARISON_DIR / "model_comparison_report.json")
+    if not isinstance(report, dict):
+        return None
+
+    best_model = report.get("best_model")
+    if not isinstance(best_model, dict):
+        return None
+
+    model_dir = best_model.get("model_dir")
+    if not isinstance(model_dir, str):
+        return None
+
+    metadata_path = resolve_dashboard_path(model_dir) / "model_metadata.json"
+    metadata = read_json(metadata_path)
+    return metadata if isinstance(metadata, dict) else None
+
+
+def format_count_or_missing(value: Any) -> str:
+    """Format a whole-number KPI or return Missing."""
+
+    try:
+        return f"{int(value):,}"
+    except (TypeError, ValueError):
+        return "Missing"
+
+
+def format_allowed_training_samples(train_rows: int) -> str:
+    """Format the allowed sampled-training range."""
+
+    return f"2 to {train_rows:,}" if train_rows >= 2 else "Unavailable"
+
+
 def path_status(path: Path) -> str:
     """Return a compact status for a result path."""
 
@@ -439,6 +984,23 @@ def short_path(path: Path) -> str:
         return str(path)
 
 
+def resolve_dashboard_path(path: Path | str) -> Path:
+    """Resolve dashboard-entered paths against the project root."""
+
+    candidate = Path(path)
+    return candidate if candidate.is_absolute() else PROJECT_ROOT / candidate
+
+
+def clear_dashboard_caches() -> None:
+    """Clear cached file readers after preprocessing or training outputs change."""
+
+    read_json.clear()
+    read_csv.clear()
+    count_csv_rows.clear()
+    count_processed_feature_columns.clear()
+    read_target_class_counts.clear()
+
+
 def format_metric(value: Any) -> str:
     """Format numeric metric values for cards."""
 
@@ -446,3 +1008,41 @@ def format_metric(value: Any) -> str:
         return f"{float(value):.4f}"
     except (TypeError, ValueError):
         return "Missing"
+
+
+def format_duration_seconds(value: Any) -> str:
+    """Format seconds for compact KPI display."""
+
+    try:
+        return f"{float(value):.4f}s"
+    except (TypeError, ValueError):
+        return "Missing"
+
+
+def format_duration_milliseconds(value: Any) -> str:
+    """Format milliseconds for compact KPI display."""
+
+    try:
+        return f"{float(value):.4f} ms"
+    except (TypeError, ValueError):
+        return "Missing"
+
+
+def extract_raw_sources(report: dict[str, Any] | list[Any] | None) -> list[dict[str, str]]:
+    """Convert preprocessing input files into a simple table for display."""
+
+    if not isinstance(report, dict):
+        return []
+
+    input_files = report.get("input_files")
+    if not isinstance(input_files, dict):
+        return []
+
+    rows: list[dict[str, str]] = []
+    for split_name in ("train", "test"):
+        files = input_files.get(split_name, [])
+        if not isinstance(files, list):
+            continue
+        for file in files:
+            rows.append({"split": split_name, "path": str(file)})
+    return rows

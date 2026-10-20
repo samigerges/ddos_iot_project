@@ -1,0 +1,14 @@
+{
+  "xgboost": {
+    "learning_rate": [0.05, 0.1],
+    "max_depth": [4, 6]
+  },
+  "lightgbm": {
+    "learning_rate": [0.05, 0.1],
+    "max_depth": [4, 6]
+  },
+  "catboost": {
+    "learning_rate": [0.05, 0.1],
+    "max_depth": [4, 6]
+  }
+}

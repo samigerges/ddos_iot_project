@@ -13,10 +13,10 @@ def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-path", type=Path, default=Path("data/raw/train"))
+    parser.add_argument("--train-input-path", type=Path, default=Path("data/raw/train/train.csv"))
+    parser.add_argument("--test-input-path", type=Path, default=Path("data/raw/test/test.csv"))
     parser.add_argument("--output-path", type=Path, default=Path("data/processed"))
     parser.add_argument("--label-column", default=None)
-    parser.add_argument("--test-size", type=float, default=0.20)
     parser.add_argument("--top-features", type=int, default=25)
     parser.add_argument(
         "--rebalance",
@@ -39,4 +39,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

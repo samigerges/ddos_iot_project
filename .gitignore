@@ -9,3 +9,7 @@ data/processed/
 models/
 outputs/
 .cache/
+tmp/
+
+# Local project backup archive
+/PROJECT.zip
