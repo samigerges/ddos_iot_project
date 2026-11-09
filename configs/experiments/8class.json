@@ -1,0 +1,14 @@
+{
+  "num_classes": 8,
+  "output_path": "outputs/experiments/8class_v1",
+  "device": "gpu",
+  "n_jobs": 2,
+  "seeds": [42],
+  "folds": 5,
+  "n_estimators": 500,
+  "learning_rate": 0.1,
+  "max_depth": 6,
+  "selection_policy": "reference_fpr",
+  "reference_candidate": "median_balanced",
+  "max_benign_fpr_increase": 0.0
+}

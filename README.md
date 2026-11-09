@@ -4,6 +4,79 @@ Three separate CICIoT2023 workflows: binary Benign vs DDoS, 34 original labels,
 and eight attack families. See [project structure](docs/PROJECT_STRUCTURE.md)
 for entry points, shared modules, and artifact locations.
 
+The [completed multiclass final evaluation](docs/MULTICLASS_FINAL_RESULTS.md)
+reproduces the published baselines and reports the frozen three-seed tests.
+The 34-class specialist improves Macro-F1, but its development-selected recall
+limit does not hold for every target class on the official test. The 8-class
+comparison has not demonstrated an improvement. The report includes saved
+models, per-class scores, paired uncertainty, CPU costs, and the timing audit.
+
+The dashboard opens on one project-wide **Overview**, showing Binary, 8-class,
+and 34-class stories together. Each section explains what was compared, shows a
+line chart, and identifies the selected model. Binary points use the saved model
+comparison order and test F1. Multiclass curves use three-split development
+validation; their final test Macro-F1 scores stay separate. Full histories and
+downloadable results are under **Full reports**. Choose
+**Navigation → Workflows** to open the binary, eight-class or 34-class tools.
+
+## Controlled multiclass improvement experiments
+
+The [experiment guide](docs/MULTICLASS_EXPERIMENTS.md) describes the shared 8/34-class
+workflow for all-46-feature ablations, normalized class-weight powers, training-only
+OOF probability export, and OOF-tuned decision biases. Candidate selection uses
+independent validation; final test evaluation is a separate command.
+New full-data runs select the best Macro-F1 that does not exceed the reference's
+Benign false-positive rate in any declared seed, while reporting the unconstrained
+winner alongside it.
+
+```powershell
+.\.venv\Scripts\python.exe -B src/experiment_multiclass.py plan --config configs/experiments/8class.json
+.\.venv\Scripts\python.exe -B src/experiment_multiclass.py run --config configs/experiments/8class.json
+```
+
+Use `configs/experiments/34class.json` for the 34-class task. Each configuration
+runs six feature/weight candidates, each with argmax and bias decisions. Choose
+a fresh output directory for repeat experiments. These controlled local splits
+are distinct from the paper-style eight-class workflow described below.
+The [first pilot results](docs/MULTICLASS_PILOT_RESULTS.md) record the observed
+Macro-F1/false-positive trade-offs and the limits of these capped-data runs.
+The [full-source eight-class results](docs/MULTICLASS_FULL_8_RESULTS.md) contain
+the completed six-candidate comparison, recall trade-offs, warmed CPU timing,
+and feature-overlap checks.
+
+The [paper baseline audit](docs/MULTICLASS_BASELINE_AUDIT.md) records confirmed
+data/model differences from the authors' pinned version 3 source. Cached OOF
+predictions can also be retuned while preserving the reference's attack recall
+and Benign false-positive rate:
+
+```powershell
+.\.venv\Scripts\python.exe -B src/retune_multiclass_recall.py --run-dir outputs/experiments/8class_v1 --output-dir outputs/experiments/8class_v1/recall_constraints_all_targets_v1 --protect WebBased Recon BruteForce
+```
+
+Use a fresh output directory for a repeat. This command fits no models, freezes
+all biases and its OOF choice before validation, and never reads the test CSV.
+It preserves the original experiment selection. See the experiment guide for
+the distinction between these development operating points and a final test.
+The [completed recall-constrained results](docs/MULTICLASS_RECALL_RESULTS.md)
+show the false-alarm gain and the limits of protecting all three target families.
+
+The [staged training study](docs/MULTICLASS_TRAINING_STUDIES.md) implements the
+next step on the verified published 23-feature datasets: paper-parameter
+references, depth/stopping/weight comparisons, CatBoost diversity, three-seed
+confirmation, single-model OOF bias tuning, evidence-gated specialists and OOF
+stacking, and a separate once-only final-test stage. An isolated environment
+also supports a reference using the paper's exact reported core software versions.
+
+```powershell
+.\.venv\Scripts\python.exe -B src/study_multiclass.py run --config configs/studies/8class.json
+.\.venv\Scripts\python.exe -B src/run_multiclass_research.py --paper-python .cache/paper_runtime3112/python.exe --wait-existing
+```
+
+These research bundles require the authors' selected/scaled input format; their
+internal validation scores are not the published held-out test scores. The
+sequential runner preserves stage logs and leaves official tests untouched unless
+`--final-test` is explicitly supplied after development choices are settled.
+
 ## Binary Pipeline (the default for run.py and the dashboard)
 
 1. Keep only Benign and DDoS rows.
@@ -48,11 +121,72 @@ for entry points, shared modules, and artifact locations.
 
 ## Setup
 
+For the hosted app and its small display-report bundle, see
+[website deployment](docs/WEBSITE_DEPLOYMENT.md).
+
 ```powershell
 pip install -r requirements.txt
 ```
 
 The project uses `pandas`/`numpy` for preprocessing, `scikit-learn` for the shared training flow, and optional XGBoost/LightGBM estimators for comparison.
+
+## Run with Docker
+
+Start Docker Desktop with Linux containers, then run from this project directory:
+
+```powershell
+docker compose up --build -d --wait
+```
+
+Open [http://localhost:8501](http://localhost:8501). The container starts only the
+dashboard; training still requires an explicit dashboard action or CLI command.
+The image uses Python 3.11 and `requirements-docker.txt`, which includes the
+shared pins in `requirements.txt` used by the hosted site. It also includes
+the native OpenMP runtime needed by LightGBM. Startup health uses Streamlit's
+[health endpoint](https://docs.streamlit.io/deploy/tutorials/docker).
+
+Compose mounts the local `data/`, `models/`, and `outputs/` directories into
+`/app/`, so existing datasets, saved models, research reports and new results are
+available and persist after the container stops. These files and `.venv/` are
+excluded from the image. Runtime caches use a separate Docker volume. Use Linux
+paths inside the dashboard, such as `data/raw/train/train.csv` or
+`/app/models/<run-name>/xgboost/model.joblib`; recorded Windows paths in old reports
+describe the original machine. Saved joblib models still require compatible
+library versions; this image does not recreate the isolated paper runtime.
+
+View logs or stop the dashboard (stopping also ends container training workers):
+
+```powershell
+docker compose logs -f dashboard
+docker compose down
+```
+
+If port 8501 is already occupied, set `$env:DASHBOARD_PORT = "8502"` before
+starting and open `http://localhost:8502`. Rebuild after changing source code
+or dependencies with `docker compose up --build -d --wait`.
+
+The same image supports the CLI without opening another dashboard. For example,
+inspect the binary pipeline options or run it explicitly:
+
+```powershell
+docker compose run --rm --no-deps dashboard python run.py --help
+docker compose run --rm --no-deps dashboard python run.py
+```
+
+The default Compose configuration uses CPU. Choose CPU for XGBoost/CatBoost in
+the multiclass dashboard when using it. For NVIDIA GPU training, use the optional
+[GPU Compose override](https://docs.docker.com/compose/how-tos/gpu-support/) with
+Docker Desktop's WSL2 backend and a compatible NVIDIA driver:
+
+```powershell
+docker compose -f compose.yaml -f compose.gpu.yaml up --build -d --wait
+docker compose -f compose.yaml -f compose.gpu.yaml exec dashboard nvidia-smi
+```
+
+With that override, XGBoost/CatBoost can use the GPU. Keep LightGBM on CPU; this
+image does not install an OpenCL GPU runtime. For one-off GPU CLI jobs, include
+the same two `-f` options before `run`, then pass the script's `--device gpu`
+and `--lightgbm-device cpu` options.
 
 ## Run Everything
 
@@ -84,6 +218,14 @@ Run the local Streamlit dashboard:
 ```powershell
 streamlit run app.py
 ```
+
+All pages share the light theme in `.streamlit/config.toml`, compact sidebar
+navigation, consistent score cards, and grouped input panels. Training, SHAP,
+timing, and report details are available in expandable sections. Overview reads
+only saved reports and model-file existence; it never launches a job or loads a
+model. Comparison curves retain their recorded order and can go down as well as
+up. The selected eight-class model is XGBoost even when a trial's mean validation
+score is slightly higher, because the gains were not reliable across splits.
 
 Use **Classification problem** in the sidebar to switch between **Binary**, **8 classes**,
 and **34 classes**. Binary keeps its preprocessing, comparison, prediction and SHAP pages.

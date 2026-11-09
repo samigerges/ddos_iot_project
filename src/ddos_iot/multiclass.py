@@ -33,6 +33,7 @@ from ddos_iot.attack_families import (
     prepare_paper_split, proportional_quotas, scan_source_pool, validate_source_paths,
 )
 from ddos_iot.utils import write_json
+from ddos_iot.weighting import balanced_class_weights
 
 LOGGER = logging.getLogger(__name__)
 MODEL_NAMES = ("xgboost", "lightgbm", "catboost")
@@ -63,7 +64,8 @@ def count_labels(path: Path, label_column: str, chunk_size: int, num_classes: in
 
 
 def load_raw_split(path: Path, label_column: str, cap: int, chunk_size: int,
-                   seed: int, num_classes: int = NUM_CLASSES) -> tuple[pd.DataFrame, dict[str, Any]]:
+                   seed: int, num_classes: int = NUM_CLASSES, *,
+                   preserve_row_index: bool = False) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Read numeric flows; random priorities give an unbiased per-class reservoir.
 
 The scan always covers the entire CSV, including late rare classes. Missing or
@@ -99,7 +101,8 @@ Duplicate flows are retained (the existing split is kept unchanged).
             chunk[priority_column] = rng.random(len(chunk))
             for label, group in chunk.groupby(label_column, sort=False):
                 previous = reservoirs.get(label)
-                candidates = group if previous is None else pd.concat([previous, group], ignore_index=True)
+                candidates = group if previous is None else pd.concat(
+                    [previous, group], ignore_index=not preserve_row_index)
                 reservoirs[label] = candidates.nsmallest(cap, priority_column).copy()
         elif len(chunk):
             parts.append(chunk)
@@ -109,7 +112,9 @@ Duplicate flows are retained (the existing split is kept unchanged).
         raise ValueError(f"No valid numeric labeled rows in {path}")
     if cap:
         parts = [reservoirs[label].drop(columns=priority_column) for label in sorted(reservoirs)]
-    data = pd.concat(parts, ignore_index=True)
+    data = pd.concat(parts, ignore_index=not preserve_row_index)
+    if preserve_row_index:
+        data = data.sort_index()
     return data, {"path": str(path.resolve()), "raw_rows": total, "removed_invalid_rows": invalid,
                   "valid_rows": total - invalid, "selected_rows": len(data),
                   "raw_counts": dict(raw_counts), "valid_counts": dict(valid_counts),
@@ -131,13 +136,11 @@ def encode_labels(train_labels: pd.Series, test_labels: pd.Series,
     return encoder, encoder.transform(train_labels), encoder.transform(test_labels)
 
 
-def class_weights(y: np.ndarray, mode: str, num_classes: int = NUM_CLASSES) -> np.ndarray:
-    counts = np.bincount(y, minlength=num_classes)
-    if len(counts) != num_classes or np.any(counts == 0):
-        raise ValueError(f"Every training partition must contain all {num_classes} classes.")
-    if mode == "none":
-        return np.ones(num_classes, dtype=np.float32)
-    return (len(y) / (num_classes * counts)).astype(np.float32)
+def class_weights(y: np.ndarray, mode: str, num_classes: int = NUM_CLASSES, *,
+                  power: float = 1.0) -> np.ndarray:
+    if mode not in ("balanced", "none"):
+        raise ValueError("Class weight mode must be balanced or none.")
+    return balanced_class_weights(y, num_classes, 0.0 if mode == "none" else power)
 
 
 def split_training(y: np.ndarray, validation_size: float, seed: int,
@@ -211,7 +214,8 @@ def fit_features(x: pd.DataFrame, y: np.ndarray, args: Any) -> FeatureTransform:
                                   n_jobs=args.n_jobs, random_state=args.random_state)
         LOGGER.info("Computing gain for all 46 features using %s training rows on CPU", len(indices))
         selector.fit(x.iloc[indices][columns], selector_y,
-                     sample_weight=class_weights(selector_y, args.class_weight, num_classes)[selector_y])
+                     sample_weight=class_weights(selector_y, args.class_weight, num_classes,
+                                                 power=getattr(args, "class_weight_power", 1.0))[selector_y])
         scores = dict(zip(columns, selector.feature_importances_.astype(float)))
         columns, threshold = above_median_features(scores)
         LOGGER.info("Retained %s/46 features with gain strictly above median %.6g", len(columns), threshold)
@@ -307,6 +311,17 @@ def best_rounds(name: str, model: Any, default: int) -> int:
 def predict_ids(name: str, model: Any, x: pd.DataFrame, batch_size: int = 100_000,
                 *, device: str = "cpu", gpu_id: int = 0) -> np.ndarray:
     """Bounded prediction; GPU XGBoost scoring, CPU by default for test timing/bundles."""
+    return _predict_batches(name, model, x, batch_size, device=device, gpu_id=gpu_id, probabilities=False)
+
+
+def predict_probabilities(name: str, model: Any, x: pd.DataFrame, batch_size: int = 100_000,
+                          *, device: str = "cpu", gpu_id: int = 0) -> np.ndarray:
+    """Class-ordered scores, preserving early stopping and the requested device."""
+    return _predict_batches(name, model, x, batch_size, device=device, gpu_id=gpu_id, probabilities=True)
+
+
+def _predict_batches(name: str, model: Any, x: pd.DataFrame, batch_size: int,
+                     *, device: str, gpu_id: int, probabilities: bool) -> np.ndarray:
     if device not in ("cpu", "gpu") or (device == "gpu" and name != "xgboost"):
         raise ValueError("GPU prediction is supported only for XGBoost in this multiclass pipeline.")
     if batch_size <= 0:
@@ -328,14 +343,16 @@ def predict_ids(name: str, model: Any, x: pd.DataFrame, batch_size: int = 100_00
             # Explicit DMatrix avoids the CPU-input/CUDA inplace-prediction warning;
             # the booster keeps its CUDA predictor. No CuPy dependency is required.
             matrix = DMatrix(batch, nthread=model.n_jobs)
-            probabilities = booster.predict(matrix, iteration_range=iteration_range, strict_shape=True)
-            values = np.argmax(probabilities, axis=1)
-            del probabilities, matrix
+            scores = booster.predict(matrix, iteration_range=iteration_range, strict_shape=True)
+            values = scores if probabilities else np.argmax(scores, axis=1)
+            del matrix
         else:
-            values = model.predict(batch, task_type="CPU") if name == "catboost" else model.predict(batch)
-        predictions.append(np.asarray(values, dtype=np.int64).reshape(-1))
+            method = model.predict_proba if probabilities else model.predict
+            values = method(batch, task_type="CPU") if name == "catboost" else method(batch)
+        predictions.append(np.asarray(values, dtype=np.float32) if probabilities
+                           else np.asarray(values, dtype=np.int64).reshape(-1))
     if not predictions:
-        return np.empty(0, dtype=np.int64)
+        return np.empty((0, len(model.classes_)), dtype=np.float32) if probabilities else np.empty(0, dtype=np.int64)
     if name == "xgboost" and device == "gpu":
         actual = json.loads(booster.save_config())["learner"]["generic_param"]["device"]
         if not actual.startswith("cuda"):
@@ -350,8 +367,17 @@ class MulticlassBundle:
     model: Any
     features: FeatureTransform
     encoder: LabelEncoder
+    decision_bias: np.ndarray | None = None
+
+    def predict_proba(self, raw_features: pd.DataFrame) -> np.ndarray:
+        return predict_probabilities(self.name, self.model, self.features.transform(raw_features))
 
     def predict(self, raw_features: pd.DataFrame) -> np.ndarray:
+        # getattr keeps old pickles (which predate decision_bias) compatible.
+        bias = getattr(self, "decision_bias", None)
+        if bias is not None:
+            from ddos_iot.experiments.decisions import predict_with_bias
+            return self.encoder.inverse_transform(predict_with_bias(self.predict_proba(raw_features), bias))
         return self.encoder.inverse_transform(predict_ids(self.name, self.model, self.features.transform(raw_features)))
 
 

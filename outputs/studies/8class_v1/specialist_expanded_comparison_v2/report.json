@@ -1,0 +1,127 @@
+{
+  "advanced_confirmed": false,
+  "advanced_kind": "specialist",
+  "advanced_source": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\specialist_expanded_v2",
+  "advanced_source_selection_sha256": "427ab136c35f5070f366edbeb92317dfd100ffd1b8f50e3b030d5910103e8df8",
+  "base_confirmation": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\confirmation_v1",
+  "candidate": "specialist_075",
+  "candidate_choice_role": "Explicit choice among frozen candidates; no recalibration. Validation is used to decide which candidates merit confirmation.",
+  "comparison_only": true,
+  "results": [
+    {
+      "accuracy": 0.99592,
+      "artifact_folder": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\specialist_expanded_v2\\specialist_075",
+      "attack_to_benign_rate": 0.001619309853980494,
+      "balanced_accuracy": 0.856635593315205,
+      "benign_false_positive_rate": 0.037174918895920867,
+      "candidate": "specialist_075",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        41.63779759994941,
+        37.304972099955194,
+        36.88862510002218
+      ],
+      "inference_us_per_sample": 46.63121512494399,
+      "latency_scope": "Complete base prediction and routing, specialist prediction and decision; published features, batched CPU.",
+      "macro_f1": 0.8809811138183575,
+      "recall_by_class": {
+        "Benign": 0.9628250811040792,
+        "BruteForce": 0.5044642857142857,
+        "DDoS": 0.9998023603332032,
+        "DoS": 0.9994874608376767,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8590116279069767,
+        "Spoofing": 0.8727338215872253,
+        "WebBased": 0.6548488008342023
+      },
+      "reference_constraints_pass": false,
+      "reused_source_result": true,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "specialist_training_seconds": 23.165420299977995,
+      "split": "validation",
+      "training_seconds": 163.26999760000035,
+      "weighted_f1": 0.9958667459063368
+    },
+    {
+      "accuracy": 0.99601875,
+      "artifact_folder": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\specialist_expanded_comparison_v2\\seed_123\\specialist_075",
+      "attack_to_benign_rate": 0.0015860275961121202,
+      "balanced_accuracy": 0.8663304331584728,
+      "benign_false_positive_rate": 0.03712173589320853,
+      "candidate": "specialist_075",
+      "full_cohort_warmup": true,
+      "inference_seconds_runs": [
+        34.63999170000079
+      ],
+      "inference_us_per_sample": 43.29998962500099,
+      "macro_f1": 0.8893904839707891,
+      "recall_by_class": {
+        "Benign": 0.9628782641067914,
+        "BruteForce": 0.5625,
+        "DDoS": 0.9997800184578263,
+        "DoS": 0.9996751512351472,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8667635658914729,
+        "Spoofing": 0.8717733221275064,
+        "WebBased": 0.6673618352450469
+      },
+      "reference_constraints_pass": false,
+      "reused_source_result": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 123,
+      "split": "validation",
+      "training_seconds": 167.12579220000043,
+      "weighted_f1": 0.9959722803422554
+    },
+    {
+      "accuracy": 0.99588,
+      "artifact_folder": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\specialist_expanded_comparison_v2\\seed_2024\\specialist_075",
+      "attack_to_benign_rate": 0.0016564323723721418,
+      "balanced_accuracy": 0.8569575299025743,
+      "benign_false_positive_rate": 0.037174918895920867,
+      "candidate": "specialist_075",
+      "full_cohort_warmup": true,
+      "inference_seconds_runs": [
+        34.062250299999505
+      ],
+      "inference_us_per_sample": 42.57781287499938,
+      "macro_f1": 0.8803622643039211,
+      "recall_by_class": {
+        "Benign": 0.9628250811040792,
+        "BruteForce": 0.5044642857142857,
+        "DDoS": 0.9997611137940458,
+        "DoS": 0.9996462757893825,
+        "Mirai": 0.9999334811529933,
+        "Recon": 0.8614341085271318,
+        "Spoofing": 0.8664905750990515,
+        "WebBased": 0.6611053180396246
+      },
+      "reference_constraints_pass": false,
+      "reused_source_result": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 2024,
+      "split": "validation",
+      "training_seconds": 165.0228064000312,
+      "weighted_f1": 0.9958280693160242
+    }
+  ],
+  "seconds": 219.1089968999995,
+  "seeds": [
+    42,
+    123,
+    2024
+  ],
+  "selected_candidate": "paper_fixed",
+  "selection_sha256": "aee9e795d518d352a88b428c58ac8701832ff1470e9691080bc4cf8392f08246",
+  "source_seed": 42,
+  "source_selection_sha256": "cb633e26e8e7c8eb2519d7dd95f8516a5feda1fda7d40092e95b259c617a4682",
+  "source_study": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1",
+  "status": "complete",
+  "test_file_read": false,
+  "upstream_feature_selection": "Author-selected/scaled 23 features; cannot establish nested preprocessing or exact held-out paper reproduction."
+}

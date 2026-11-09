@@ -1,0 +1,4 @@
+# Optional NVIDIA GPU access for XGBoost and CatBoost training.
+services:
+  dashboard:
+    gpus: all

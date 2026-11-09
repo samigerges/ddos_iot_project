@@ -1,0 +1,162 @@
+{
+  "models_saved": [
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_42\\paper_fixed\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_42\\specialist_oof_protected_bias\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_123\\paper_fixed\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_123\\specialist_oof_protected_bias\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_2024\\paper_fixed\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1\\seed_2024\\specialist_oof_protected_bias\\model.joblib"
+  ],
+  "protocol_sha256": "e05cd244911e21766031cd61621fb02b82a20e7d3e98391d7b826a85c2114fac",
+  "results": [
+    {
+      "accuracy": 0.994797,
+      "attack_to_benign_rate": 0.00167844857690295,
+      "balanced_accuracy": 0.8632525018122846,
+      "benign_false_positive_rate": 0.0396545121899332,
+      "between_family_error_count": 4054,
+      "candidate": "paper_fixed",
+      "family_macro_f1": 0.8858258776777064,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        131.08741539999937
+      ],
+      "inference_us_per_sample": 131.08741539999937,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8865362842816606,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 42,
+      "split": "test",
+      "training_seconds": 872.8205919999746,
+      "weighted_f1": 0.9947200380340463,
+      "within_family_error_count": 1149
+    },
+    {
+      "accuracy": 0.994944,
+      "attack_to_benign_rate": 0.0018023608879494766,
+      "balanced_accuracy": 0.864563541087975,
+      "benign_false_positive_rate": 0.03437858996723823,
+      "between_family_error_count": 3969,
+      "candidate": "specialist_oof_protected_bias",
+      "family_macro_f1": 0.8892254003928717,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        184.13310570000067
+      ],
+      "inference_us_per_sample": 184.13310570000067,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8939815237356938,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 42,
+      "split": "test",
+      "training_seconds": 928.3270724999729,
+      "weighted_f1": 0.9948315882980031,
+      "within_family_error_count": 1087
+    },
+    {
+      "accuracy": 0.994797,
+      "attack_to_benign_rate": 0.00167844857690295,
+      "balanced_accuracy": 0.8632525018122846,
+      "benign_false_positive_rate": 0.0396545121899332,
+      "between_family_error_count": 4054,
+      "candidate": "paper_fixed",
+      "family_macro_f1": 0.8858258776777064,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        257.4629722000009
+      ],
+      "inference_us_per_sample": 257.4629722000009,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8865362842816606,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 123,
+      "split": "test",
+      "training_seconds": 749.9191719999999,
+      "weighted_f1": 0.9947200380340463,
+      "within_family_error_count": 1149
+    },
+    {
+      "accuracy": 0.994944,
+      "attack_to_benign_rate": 0.0018023608879494766,
+      "balanced_accuracy": 0.864563541087975,
+      "benign_false_positive_rate": 0.03437858996723823,
+      "between_family_error_count": 3969,
+      "candidate": "specialist_oof_protected_bias",
+      "family_macro_f1": 0.8892254003928717,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        267.9794469999997
+      ],
+      "inference_us_per_sample": 267.9794469999997,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8939815237356938,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 123,
+      "split": "test",
+      "training_seconds": 807.0012427999991,
+      "weighted_f1": 0.9948315882980031,
+      "within_family_error_count": 1087
+    },
+    {
+      "accuracy": 0.994797,
+      "attack_to_benign_rate": 0.00167844857690295,
+      "balanced_accuracy": 0.8632525018122846,
+      "benign_false_positive_rate": 0.0396545121899332,
+      "between_family_error_count": 4054,
+      "candidate": "paper_fixed",
+      "family_macro_f1": 0.8858258776777064,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        4495.3788475
+      ],
+      "inference_us_per_sample": 4495.3788475,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8865362842816606,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 2024,
+      "split": "test",
+      "training_seconds": 760.1006932,
+      "weighted_f1": 0.9947200380340463,
+      "within_family_error_count": 1149
+    },
+    {
+      "accuracy": 0.994944,
+      "attack_to_benign_rate": 0.0018023608879494766,
+      "balanced_accuracy": 0.864563541087975,
+      "benign_false_positive_rate": 0.03437858996723823,
+      "between_family_error_count": 3969,
+      "candidate": "specialist_oof_protected_bias",
+      "family_macro_f1": 0.8892254003928717,
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        156.42240250000032
+      ],
+      "inference_us_per_sample": 156.42240250000032,
+      "latency_scope": "Complete published-format bundle prediction and decision; no raw feature extraction.",
+      "macro_f1": 0.8939815237356938,
+      "rows": 1000000,
+      "score_role": "Once-only evaluation of models, seeds and decisions frozen before test access.",
+      "seed": 2024,
+      "split": "test",
+      "training_seconds": 815.5818950000012,
+      "weighted_f1": 0.9948315882980031,
+      "within_family_error_count": 1087
+    }
+  ],
+  "seconds": 6962.4066274000015,
+  "status": "complete",
+  "test_access_started": true,
+  "test_csv_opened": true,
+  "test_used_for_selection": false
+}

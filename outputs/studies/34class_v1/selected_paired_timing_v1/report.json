@@ -1,0 +1,55 @@
+{
+  "cohort_sha256": "d083497be7a69aad1494c7e734452730e697862a1e0fbd2726bcd15057406abb",
+  "confirmation_selection_sha256": "68152e5b85cac3ea3116466d5fda5a45cecd60d6e52f431d9843e13f54b20932",
+  "models": [
+    {
+      "candidate": "paper_fixed",
+      "model": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\seed_42\\finalists\\paper_fixed\\model.joblib",
+      "model_sha256": "53403213b106e49d28e761e965f155e7bd5c2acd4cb7ffab9ff4d847f9caa269",
+      "source_validation_macro_f1": 0.8892300311441901
+    },
+    {
+      "candidate": "specialist_oof_protected_bias",
+      "model": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\specialist_bias_v1\\specialist_oof_protected_bias\\model.joblib",
+      "model_sha256": "1164049cc19c45c793191a9a04725c5eec820ff15c014a8530cbc40ef2b9033c",
+      "source_validation_macro_f1": 0.8969826527271348
+    }
+  ],
+  "repeats": 4,
+  "results": [
+    {
+      "candidate": "paper_fixed",
+      "inference_us_median": 130.70968099999845,
+      "inference_us_std": 1.4152352113519813,
+      "model": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\seed_42\\finalists\\paper_fixed\\model.joblib",
+      "model_sha256": "53403213b106e49d28e761e965f155e7bd5c2acd4cb7ffab9ff4d847f9caa269",
+      "seconds_runs": [
+        13.055367099999785,
+        13.001224300000104,
+        13.086569099999906,
+        13.366856599999664
+      ],
+      "source_validation_macro_f1": 0.8892300311441901
+    },
+    {
+      "candidate": "specialist_oof_protected_bias",
+      "inference_us_median": 134.15914350000094,
+      "inference_us_std": 3.1742924091714655,
+      "model": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\specialist_bias_v1\\specialist_oof_protected_bias\\model.joblib",
+      "model_sha256": "1164049cc19c45c793191a9a04725c5eec820ff15c014a8530cbc40ef2b9033c",
+      "seconds_runs": [
+        14.104429799999707,
+        13.396659500000169,
+        13.306267399999342,
+        13.435169200000018
+      ],
+      "source_validation_macro_f1": 0.8969826527271348
+    }
+  ],
+  "rows": 100000,
+  "scope": "Exact frozen selected head versus fixed reference; same 100k-row validation cohort, full warmups, four balanced rotating passes. No fitting.",
+  "seed": 42,
+  "status": "complete",
+  "test_file_read": false,
+  "threads": 2
+}

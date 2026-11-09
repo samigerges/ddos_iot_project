@@ -1,0 +1,9 @@
+{
+  "num_classes": 34,
+  "output_path": "outputs/studies/34class_v1",
+  "seeds": [42],
+  "device": "gpu",
+  "n_jobs": 2,
+  "catboost": true,
+  "full_reference_fit": true
+}

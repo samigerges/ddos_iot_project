@@ -1,0 +1,11 @@
+{
+  "archived_artifacts": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\stack_stopped_lbfgs_2000_v1",
+  "base_oof_complete": true,
+  "num_classes": 34,
+  "reason": "Stopped after verified L-BFGS nonconvergence at 2000 iterations; superseded by a solver-only repair using the completed shared base OOF caches.",
+  "seed": 42,
+  "source_study": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1",
+  "status": "skipped",
+  "test_file_read": false,
+  "validation_results": []
+}

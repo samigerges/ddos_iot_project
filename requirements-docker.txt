@@ -1,0 +1,2 @@
+# Docker uses the same pinned libraries as the hosted website.
+-r requirements.txt

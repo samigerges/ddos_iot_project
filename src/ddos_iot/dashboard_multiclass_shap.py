@@ -10,11 +10,13 @@ import streamlit as st
 
 from ddos_iot.dashboard_multiclass import display_path, resolve_path, show_csv
 from ddos_iot.dashboard_runs import read_report, saved_models
+from ddos_iot.dashboard_style import page_header
 from ddos_iot.paths import RAW_TEST_FILE
 
 
 def render_shap_page(num_classes: int, run: Path | None) -> None:
-    st.subheader(f"{num_classes}-Class SHAP Explanations")
+    page_header(f"{num_classes}-Class SHAP Explanations", "Explain a saved model and explore feature contributions by class.",
+                eyebrow=f"{num_classes}-class workflow")
     choices = saved_models(run) if run is not None else []
     if not choices:
         st.info("No saved model is available for this experiment. Train once, then generate SHAP without retraining.")
@@ -23,24 +25,25 @@ def render_shap_page(num_classes: int, run: Path | None) -> None:
     model = st.selectbox("Model to explain", choices, format_func=lambda p: p.parent.name, key=f"{prefix}_model")
     st.caption("Only trusted local model bundles. SHAP reuses the saved features, scaler, and class order; "
                "no training, tuning, or GPU work is performed.")
-    with st.expander("Generate new explanations", expanded=True):
+    with st.expander("Generate new explanations"):
         input_value = st.text_input("Raw CSV to explain", display_path(RAW_TEST_FILE), key=f"{prefix}_input")
-        sample_size = st.number_input("SHAP sample rows", min_value=1, max_value=5000, value=200, key=f"{prefix}_size")
-        scan = st.number_input("Rows scanned per CSV (0 = full file)", min_value=0, value=50_000, step=10_000, key=f"{prefix}_scan")
+        sample_col, scan_col = st.columns(2)
+        sample_size = sample_col.number_input("SHAP sample rows", min_value=1, max_value=5000, value=200, key=f"{prefix}_size")
+        scan = scan_col.number_input("Rows scanned per CSV (0 = full file)", min_value=0, value=50_000, step=10_000, key=f"{prefix}_scan")
         st.caption("The default samples valid rows from the first 50,000 data rows, not the whole dataset. "
                    "Rare classes may be absent. Set the scan limit to 0 for a full-file random sample; reading may take longer. "
                    "These explanations describe the chosen input, not a new held-out evaluation.")
-        method = st.selectbox("SHAP method", ("auto", "native", "permutation"), key=f"{prefix}_method")
-        background = st.text_input("Optional separate training-background CSV", "", key=f"{prefix}_background")
-        st.caption("Native TreeSHAP uses training tree statistics. A training-background CSV is needed only for "
-                   "permutation SHAP or fallback; never substitute the explained/test CSV.")
         with st.expander("Advanced SHAP settings"):
+            method = st.selectbox("SHAP method", ("auto", "native", "permutation"), key=f"{prefix}_method")
+            background = st.text_input("Optional separate training-background CSV", "", key=f"{prefix}_background")
+            st.caption("Native TreeSHAP uses training tree statistics. A training-background CSV is needed only for "
+                       "permutation SHAP or fallback; never substitute the explained/test CSV.")
             bg_size = st.number_input("Background rows", min_value=1, max_value=500, value=50, key=f"{prefix}_bgsize")
             fallback_size = st.number_input("Permutation maximum rows", min_value=1, max_value=200, value=20, key=f"{prefix}_fallback")
             local = st.number_input("Exported local waterfall plots", min_value=0, max_value=50, value=5, key=f"{prefix}_local")
             display = st.number_input("Top displayed features", min_value=1, max_value=46, value=15, key=f"{prefix}_display")
             threads = st.number_input("SHAP CPU threads", min_value=1, max_value=32, value=2, key=f"{prefix}_threads")
-        if st.button("Generate SHAP without retraining", key=f"{prefix}_generate"):
+        if st.button("Generate SHAP without retraining", key=f"{prefix}_generate", type="primary"):
             try:
                 from ddos_iot.multiclass_shap import run_multiclass_shap
 
@@ -90,17 +93,16 @@ def render_saved_shap(folder: Path, report: dict, prefix: str) -> None:
                                  format_func=lambda i: str(data["classes"][i]), key=f"{prefix}_class")
         st.subheader("Global Feature Importance")
         st.caption("All-class summary averages |SHAP| over sampled rows and output classes; it is not class-conditional importance.")
+        view = st.radio("Visualization", ("All classes", "Selected class", "Distribution"),
+                        horizontal=True, key=f"{prefix}_view")
         with PLOT_LOCK:
-            figures = []
+            figure = (importance_figure(data, output_space=space) if view == "All classes" else
+                      importance_figure(data, class_id, output_space=space) if view == "Selected class" else
+                      beeswarm_figure(data, class_id, output_space=space))
             try:
-                for figure in (importance_figure(data, output_space=space),
-                               importance_figure(data, class_id, output_space=space),
-                               beeswarm_figure(data, class_id, output_space=space)):
-                    figures.append(figure)
-                    st.pyplot(figure)
+                st.pyplot(figure)
             finally:
-                for figure in figures:
-                    plt.close(figure)
+                plt.close(figure)
         st.subheader("Individual Prediction")
         row = st.selectbox("Sample row (zero-based CSV data row)", list(range(len(data["row_indices"]))),
                            format_func=lambda i: str(data["row_indices"][i]), key=f"{prefix}_row")

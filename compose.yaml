@@ -1,0 +1,16 @@
+services:
+  dashboard:
+    build: .
+    image: ddos-iot:local
+    init: true
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-8501}:8501"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - runtime-cache:/app/.cache
+    restart: unless-stopped
+
+volumes:
+  runtime-cache:

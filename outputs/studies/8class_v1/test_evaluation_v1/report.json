@@ -1,0 +1,83 @@
+{
+  "models_saved": [
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\test_evaluation_v1\\seed_42\\paper_fixed\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\test_evaluation_v1\\seed_123\\paper_fixed\\model.joblib",
+    "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\test_evaluation_v1\\seed_2024\\paper_fixed\\model.joblib"
+  ],
+  "protocol_sha256": "c7b61e5cb0e1e9837d1fa2171ec308c0e71fd84e2db5efe1324c0046d780baac",
+  "results": [
+    {
+      "accuracy": 0.995865,
+      "attack_to_benign_rate": 0.0015934508759371509,
+      "balanced_accuracy": 0.8674016690360702,
+      "benign_false_positive_rate": 0.04131387482449049,
+      "candidate": "paper_fixed",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        44.8877046000016
+      ],
+      "inference_us_per_sample": 44.8877046000016,
+      "latency_scope": "Batched prediction on published selected/scaled features; excludes raw feature extraction/loading.",
+      "macro_f1": 0.8884128416502264,
+      "rows": 1000000,
+      "score_role": "Once-only final evaluation of models/settings frozen before test access.",
+      "seed": 42,
+      "single_flow_latency_measured": false,
+      "split": "test",
+      "training_seconds": 168.4270458999672,
+      "weighted_f1": 0.9958265617618479
+    },
+    {
+      "accuracy": 0.995865,
+      "attack_to_benign_rate": 0.0015934508759371509,
+      "balanced_accuracy": 0.8674016690360702,
+      "benign_false_positive_rate": 0.04131387482449049,
+      "candidate": "paper_fixed",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        42.43957319999936
+      ],
+      "inference_us_per_sample": 42.439573199999366,
+      "latency_scope": "Batched prediction on published selected/scaled features; excludes raw feature extraction/loading.",
+      "macro_f1": 0.8884128416502264,
+      "rows": 1000000,
+      "score_role": "Once-only final evaluation of models/settings frozen before test access.",
+      "seed": 123,
+      "single_flow_latency_measured": false,
+      "split": "test",
+      "training_seconds": 171.00064079999993,
+      "weighted_f1": 0.9958265617618479
+    },
+    {
+      "accuracy": 0.995865,
+      "attack_to_benign_rate": 0.0015934508759371509,
+      "balanced_accuracy": 0.8674016690360702,
+      "benign_false_positive_rate": 0.04131387482449049,
+      "candidate": "paper_fixed",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        43.088766699998814
+      ],
+      "inference_us_per_sample": 43.088766699998814,
+      "latency_scope": "Batched prediction on published selected/scaled features; excludes raw feature extraction/loading.",
+      "macro_f1": 0.8884128416502264,
+      "rows": 1000000,
+      "score_role": "Once-only final evaluation of models/settings frozen before test access.",
+      "seed": 2024,
+      "single_flow_latency_measured": false,
+      "split": "test",
+      "training_seconds": 169.14179599999989,
+      "weighted_f1": 0.9958265617618479
+    }
+  ],
+  "seconds": 331.8210102000012,
+  "status": "complete",
+  "test_access_started": true,
+  "test_csv_opened": true,
+  "test_rows": 1000000,
+  "test_used_for_selection": false,
+  "training_source_study": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1"
+}

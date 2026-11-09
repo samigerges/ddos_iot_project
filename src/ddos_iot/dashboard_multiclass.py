@@ -13,6 +13,7 @@ import streamlit as st
 
 from ddos_iot.attack_families import FAMILY_MEMBERS
 from ddos_iot.dashboard_metrics import add_multiclass_scores, render_evaluation_tables, render_metric_table
+from ddos_iot.dashboard_style import page_header
 from ddos_iot.dashboard_runs import (
     MODEL_NAMES, build_training_command, discover_runs, read_report,
     saved_models, start_training_job, tail_log,
@@ -44,14 +45,13 @@ def show_csv(path: Path, *, limit: int | None = None) -> pd.DataFrame:
 
 def render_multiclass(num_classes: int) -> None:
     """Task-specific navigation; binary pages never consume multiclass artifacts."""
-    st.caption(f"{num_classes}-class workflow · XGBoost, LightGBM, CatBoost · saved models are reusable")
     page = st.sidebar.radio("View", ("Overview", "Run Pipeline", "Dataset", "Model Comparison", "SHAP", "Predict"),
                             key=f"mc_{num_classes}_page")
     runs = discover_runs(num_classes)
     run = st.sidebar.selectbox("Experiment", runs, format_func=lambda p: p.name,
                                key=f"mc_{num_classes}_run") if runs else None
-    st.sidebar.button("Refresh reports", key=f"mc_{num_classes}_refresh")
-    st.sidebar.caption("Reports are read fresh on refresh. A reported 'running' status is not a live process check.")
+    st.sidebar.button("Refresh reports", key=f"mc_{num_classes}_refresh", use_container_width=True)
+    st.sidebar.caption("Status comes from the last saved report.")
     if page == "Run Pipeline":
         render_training(num_classes)
     elif page == "Predict":
@@ -69,11 +69,21 @@ def render_multiclass(num_classes: int) -> None:
 
 
 def render_overview(num_classes: int, run: Path | None, runs: list[Path]) -> None:
-    st.subheader(f"{num_classes}-Class Overview")
+    page_header(f"{num_classes}-Class Overview", "Experiments, saved models, and the latest training progress.",
+                eyebrow=f"{num_classes}-class workflow")
     columns = st.columns(3)
     columns[0].metric("Experiments", len(runs))
     columns[1].metric("Saved models", sum(len(saved_models(p)) for p in runs))
     columns[2].metric("Classes", num_classes)
+    with st.expander("Training protocol & defaults"):
+        _render_protocol(num_classes)
+    if run is None:
+        st.info("No experiment exists yet. Use Run Pipeline to train the first models.")
+        return
+    render_run_status(run)
+
+
+def _render_protocol(num_classes: int) -> None:
     st.markdown("Raw CSV → class mapping/sampling → gain above the median of all 46 features → "
                 "scaling → five-fold grid search → final fit/refit → **save model** → held-out evaluation")
     if num_classes == 8:
@@ -85,10 +95,6 @@ def render_overview(num_classes: int, run: Path | None, runs: list[Path]) -> Non
                 "inside CV folds. The held-out test set is never used for tuning.")
     st.caption("Older experiments can have different settings. Inspect their stored configuration, not current defaults. "
                "Paper-equivalent scores are not guaranteed. Use SHAP to explain a saved model without retraining.")
-    if run is None:
-        st.info("No experiment exists yet. Use Run Pipeline to train the first models.")
-        return
-    render_run_status(run)
 
 
 def render_run_status(run: Path) -> None:
@@ -131,36 +137,41 @@ def render_run_status(run: Path) -> None:
 
 
 def render_training(num_classes: int) -> None:
-    st.subheader(f"Train {num_classes} Classes")
-    st.caption("Launching is explicit. Existing experiments are never overwritten or automatically retrained. "
-               "A background worker keeps running when you switch dashboard pages.")
+    page_header(f"Train {num_classes} Classes", "Configure a new experiment and launch training in the background.",
+                eyebrow=f"{num_classes}-class workflow")
     prefix = f"mc_{num_classes}_train"
     with st.form(prefix):
-        models = st.multiselect("Models", MODEL_NAMES, default=list(MODEL_NAMES))
-        device = st.selectbox("Training device", ("gpu", "cpu"))
-        lightgbm_device = st.selectbox("LightGBM device", ("cpu", "gpu"),
+        compute, data = st.columns(2, gap="medium")
+        with compute:
+            st.markdown("#### Models & compute")
+            models = st.multiselect("Models", MODEL_NAMES, default=list(MODEL_NAMES))
+            device = st.selectbox("Training device", ("gpu", "cpu"))
+            lightgbm_device = st.selectbox("LightGBM device", ("cpu", "gpu"),
                                       help="CPU avoids the OpenCL failure previously seen on this system.")
-        st.caption("GPU: XGBoost/CatBoost fits use GPU; XGBoost CV prediction uses CUDA. "
-                   "CatBoost multiclass scoring, feature selection, CSV work, and final inference use CPU.")
-        protocol = st.selectbox("Data protocol", ("paper", "existing") if num_classes == 8 else ("existing",))
-        train_path = st.text_input("Raw training/source CSV", display_path(RAW_TRAIN_FILE))
-        test_path = st.text_input("Raw test CSV (existing-split protocol only)", display_path(RAW_TEST_FILE))
-        if num_classes == 8:
-            st.caption("Paper mode reads only the training/source CSV and creates a new 80/20 split. "
-                       "To use the supplied train/test split, choose existing. Form changes apply on submit.")
-            sampling_target = st.number_input("Paper sampling target", min_value=8, value=5_000_000, step=1000)
-            minimum = st.number_input("Paper minimum samples per family", min_value=1, value=1000, step=100)
-        cap = st.number_input("Training cap per class (existing protocol; 0 = all)", min_value=0, value=0, step=1000)
-        cv = st.checkbox("Five-fold grid-search tuning", value=True)
-        cv_preprocessing = st.selectbox("CV preprocessing", ("train", "fold") if num_classes == 8 else ("fold", "train"))
-        st.caption("train follows the paper but can give optimistic CV scores; fold fits preprocessing within each fold.")
-        estimators = st.number_input("Maximum boosting rounds", min_value=1, value=500, step=50)
-        grid = st.text_input("Optional parameter-grid JSON path", "")
-        gpu_id = st.number_input("GPU ID", min_value=0, value=0, step=1)
-        no_plots = st.checkbox("Skip confusion-matrix plots", value=False)
+            cv = st.checkbox("Five-fold grid-search tuning", value=True)
+            estimators = st.number_input("Maximum boosting rounds", min_value=1, value=500, step=50)
+        with data:
+            st.markdown("#### Dataset")
+            protocol = st.selectbox("Data protocol", ("paper", "existing") if num_classes == 8 else ("existing",))
+            train_path = st.text_input("Raw training/source CSV", display_path(RAW_TRAIN_FILE))
+            test_path = st.text_input("Raw test CSV (existing-split protocol only)", display_path(RAW_TEST_FILE))
+            if num_classes == 8:
+                st.caption("Paper mode creates a new 80/20 split from the source CSV. Choose existing to use both files.")
+                sampling_target = st.number_input("Paper sampling target", min_value=8, value=5_000_000, step=1000)
+                minimum = st.number_input("Paper minimum samples per family", min_value=1, value=1000, step=100)
+        with st.expander("Advanced training settings"):
+            cap = st.number_input("Training cap per class (existing protocol; 0 = all)", min_value=0, value=0, step=1000)
+            cv_preprocessing = st.selectbox("CV preprocessing", ("train", "fold") if num_classes == 8 else ("fold", "train"))
+            st.caption("train follows the paper but can give optimistic CV scores; fold fits preprocessing within each fold.")
+            grid = st.text_input("Optional parameter-grid JSON path", "")
+            gpu_id = st.number_input("GPU ID", min_value=0, value=0, step=1)
+            no_plots = st.checkbox("Skip confusion-matrix plots", value=False)
+            st.caption("XGBoost/CatBoost fitting can use GPU. CatBoost multiclass scoring, feature selection, "
+                       "CSV work, and final inference use CPU.")
+        st.markdown("#### Save & launch")
         run_name = st.text_input("New experiment folder name", f"multiclass_{num_classes}_{datetime.now():%Y%m%d_%H%M%S}")
         acknowledged = st.checkbox("I understand this starts a new training run and may compete with any running job.")
-        submitted = st.form_submit_button("Start multiclass training")
+        submitted = st.form_submit_button("Start multiclass training", type="primary")
     if not submitted:
         return
     if not acknowledged:
@@ -206,9 +217,10 @@ def render_training(num_classes: int) -> None:
 
 
 def render_dataset(num_classes: int, run: Path | None) -> None:
-    st.subheader(f"{num_classes}-Class Dataset")
+    page_header(f"{num_classes}-Class Dataset", "Review class counts, feature selection, and saved data preparation reports.",
+                eyebrow=f"{num_classes}-class workflow")
     if num_classes == 8:
-        with st.expander("Exact family mapping", expanded=True):
+        with st.expander("Exact family mapping"):
             st.dataframe(pd.DataFrame([{"family": family, "raw_label": raw}
                                       for family, members in FAMILY_MEMBERS.items() for raw in members]),
                          use_container_width=True, hide_index=True)
@@ -234,7 +246,8 @@ def render_dataset(num_classes: int, run: Path | None) -> None:
 
 
 def render_comparison(run: Path | None) -> None:
-    st.subheader("Multiclass Model Comparison")
+    page_header("Multiclass Model Comparison", "Compare test performance and inspect the selected model's diagnostics.",
+                eyebrow="Multiclass workflow")
     if run is None:
         st.info("Train an experiment first to compare models.")
         return
@@ -250,9 +263,9 @@ def render_comparison(run: Path | None) -> None:
     render_metric_table(frame, ("model", "accuracy", "macro_precision", "macro_recall", "macro_f1", "weighted_f1",
                                 "balanced_accuracy", "cv_macro_f1_mean", "cv_macro_f1_std"),
                         sort_by=report.get("selection_metric", "macro_f1"))
-    st.subheader("Timing comparison")
-    render_metric_table(frame, ("model", "training_seconds", "cv_seconds", "total_training_seconds",
-                                "inference_seconds", "inference_us_per_sample"))
+    with st.expander("Training & inference timing"):
+        render_metric_table(frame, ("model", "training_seconds", "cv_seconds", "total_training_seconds",
+                                    "inference_seconds", "inference_us_per_sample"))
     if not frame.empty:
         with st.expander("All recorded model metrics"):
             st.dataframe(frame, use_container_width=True, hide_index=True)
@@ -284,7 +297,8 @@ def render_comparison(run: Path | None) -> None:
 
 
 def render_prediction(num_classes: int, runs: list[Path]) -> None:
-    st.subheader(f"Predict with a Saved {num_classes}-Class Model")
+    page_header(f"Predict with a Saved {num_classes}-Class Model", "Choose a saved model and provide raw traffic features.",
+                eyebrow=f"{num_classes}-class workflow")
     choices = [model for run in runs for model in saved_models(run)]
     if not choices:
         st.info("No saved model is available for this task yet. Train once, then return here; prediction never trains.")
@@ -301,8 +315,10 @@ def render_prediction(num_classes: int, runs: list[Path]) -> None:
         input_path = None
     else:
         input_path = resolve_path(st.text_input("Raw prediction CSV path", display_path(RAW_TEST_FILE), key=f"{prefix}_input"))
-    chunk = st.number_input("Prediction chunk size", min_value=1, value=100_000, step=10_000, key=f"{prefix}_chunk")
+    with st.expander("Prediction settings"):
+        chunk = st.number_input("Prediction chunk size", min_value=1, value=100_000, step=10_000, key=f"{prefix}_chunk")
     if st.button("Predict without retraining", key=f"{prefix}_submit",
+                 type="primary",
                  disabled=source == "Upload CSV" and uploaded is None):
         st.session_state.pop(f"{prefix}_result", None)
         output = PREDICTIONS_DIR / f"multiclass_{num_classes}_{datetime.now():%Y%m%d_%H%M%S}_{uuid4().hex[:8]}.csv"

@@ -167,7 +167,8 @@ class DashboardPageTests(unittest.TestCase):
     def app(self):
         from streamlit.testing.v1 import AppTest
 
-        return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+        app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+        return app.radio(key="dashboard_navigation").set_value("Workflows").run()
 
     def assert_no_exception(self, app):
         self.assertEqual(len(app.exception), 0, [e.message for e in app.exception])

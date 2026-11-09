@@ -1,0 +1,567 @@
+{
+  "author_code_executed": false,
+  "author_commit": "e4e0edbacd658721f28b657f16a7f68d6fa72073",
+  "author_settings": {
+    "34class": {
+      "argument_defaults": {
+        "--chunk_size": 2000000,
+        "--fig_dpi": 600,
+        "--figures_dir": "./figures_multi",
+        "--max_classes_to_show": 20,
+        "--min_samples": 1000,
+        "--output_dir": "./results/34class_classification",
+        "--random_state": 42,
+        "--subsample_n": 200000,
+        "--target_rows": 5000000,
+        "--test_size": 0.2
+      },
+      "dictionaries": {
+        "fs_params": {
+          "line": 292,
+          "values": {
+            "learning_rate": 0.1,
+            "min_data_in_leaf": 100,
+            "num_class": {
+              "source_expression": "n_classes"
+            },
+            "num_leaves": 31,
+            "objective": "multiclass",
+            "seed": {
+              "source_expression": "random_state"
+            },
+            "verbosity": -1
+          }
+        },
+        "xgb_params_all": {
+          "line": 523,
+          "values": {
+            "device": "cuda",
+            "eval_metric": "mlogloss",
+            "learning_rate": 0.1,
+            "max_depth": 14,
+            "n_estimators": 500,
+            "predictor": "gpu_predictor",
+            "random_state": {
+              "source_expression": "random_state"
+            },
+            "use_label_encoder": false,
+            "verbosity": 0
+          }
+        },
+        "xgb_params_selected": {
+          "line": 603,
+          "values": {
+            "device": "cuda",
+            "eval_metric": "mlogloss",
+            "learning_rate": 0.1,
+            "max_depth": 10,
+            "n_estimators": 500,
+            "predictor": "gpu_predictor",
+            "random_state": {
+              "source_expression": "random_state"
+            },
+            "use_label_encoder": false,
+            "verbosity": 0
+          }
+        }
+      },
+      "executed": false,
+      "functions": {
+        "_sanitize_name": {
+          "end_line": 105,
+          "line": 103
+        },
+        "create_directory_structure": {
+          "end_line": 126,
+          "line": 107
+        },
+        "load_and_count_labels": {
+          "end_line": 159,
+          "line": 128
+        },
+        "main": {
+          "end_line": 1142,
+          "line": 905
+        },
+        "measure_inference_latency": {
+          "end_line": 419,
+          "line": 407
+        },
+        "parse_arguments": {
+          "end_line": 101,
+          "line": 68
+        },
+        "perform_feature_selection": {
+          "end_line": 324,
+          "line": 275
+        },
+        "plot_counts": {
+          "end_line": 197,
+          "line": 161
+        },
+        "run_ablation_study": {
+          "end_line": 704,
+          "line": 506
+        },
+        "run_cross_validation": {
+          "end_line": 504,
+          "line": 421
+        },
+        "save_all_results": {
+          "end_line": 903,
+          "line": 837
+        },
+        "save_classification_report_as_image": {
+          "end_line": 366,
+          "line": 346
+        },
+        "save_confusion_matrix": {
+          "end_line": 405,
+          "line": 368
+        },
+        "save_feature_importance": {
+          "end_line": 344,
+          "line": 326
+        },
+        "stratified_undersampling": {
+          "end_line": 273,
+          "line": 199
+        },
+        "train_other_models": {
+          "end_line": 835,
+          "line": 706
+        }
+      },
+      "path": "outputs\\baseline_audit_v1\\sources\\author_v3\\experiment_scripts\\34class_classification_experiment.py",
+      "sha256": "d578e111be644568cd2e0d573bdcd4c07cc000d086a49c002272983290cf89b3"
+    },
+    "8class": {
+      "argument_defaults": {
+        "--chunk_size": 2000000,
+        "--fig_dpi": 600,
+        "--figures_dir": "./figures_8",
+        "--min_samples": 1000,
+        "--output_dir": "./results/8class_classification",
+        "--random_state": 42,
+        "--subsample_n": 200000,
+        "--target_rows": 5000000,
+        "--test_size": 0.2
+      },
+      "dictionaries": {
+        "fs_params": {
+          "line": 327,
+          "values": {
+            "learning_rate": 0.1,
+            "min_data_in_leaf": 100,
+            "num_class": {
+              "source_expression": "n_classes"
+            },
+            "num_leaves": 31,
+            "objective": "multiclass",
+            "seed": {
+              "source_expression": "random_state"
+            },
+            "verbosity": -1
+          }
+        },
+        "xgb_params_all": {
+          "line": 549,
+          "values": {
+            "device": "cuda",
+            "eval_metric": "mlogloss",
+            "learning_rate": 0.1,
+            "max_depth": 10,
+            "n_estimators": 500,
+            "predictor": "gpu_predictor",
+            "random_state": {
+              "source_expression": "random_state"
+            },
+            "use_label_encoder": false,
+            "verbosity": 0
+          }
+        },
+        "xgb_params_selected": {
+          "line": 629,
+          "values": {
+            "device": "cuda",
+            "eval_metric": "mlogloss",
+            "learning_rate": 0.1,
+            "max_depth": 10,
+            "n_estimators": 500,
+            "predictor": "gpu_predictor",
+            "random_state": {
+              "source_expression": "random_state"
+            },
+            "use_label_encoder": false,
+            "verbosity": 0
+          }
+        }
+      },
+      "executed": false,
+      "functions": {
+        "_sanitize_name": {
+          "end_line": 102,
+          "line": 100
+        },
+        "create_category_mapping": {
+          "end_line": 170,
+          "line": 125
+        },
+        "create_directory_structure": {
+          "end_line": 123,
+          "line": 104
+        },
+        "load_and_count_labels": {
+          "end_line": 198,
+          "line": 172
+        },
+        "main": {
+          "end_line": 1182,
+          "line": 931
+        },
+        "map_labels_to_categories": {
+          "end_line": 308,
+          "line": 295
+        },
+        "measure_inference_latency": {
+          "end_line": 434,
+          "line": 422
+        },
+        "parse_arguments": {
+          "end_line": 98,
+          "line": 67
+        },
+        "perform_feature_selection": {
+          "end_line": 354,
+          "line": 310
+        },
+        "plot_counts": {
+          "end_line": 224,
+          "line": 200
+        },
+        "run_ablation_study": {
+          "end_line": 730,
+          "line": 532
+        },
+        "run_cross_validation": {
+          "end_line": 530,
+          "line": 436
+        },
+        "save_all_results": {
+          "end_line": 929,
+          "line": 863
+        },
+        "save_classification_report_as_image": {
+          "end_line": 392,
+          "line": 376
+        },
+        "save_confusion_matrix": {
+          "end_line": 420,
+          "line": 394
+        },
+        "save_feature_importance": {
+          "end_line": 374,
+          "line": 356
+        },
+        "stratified_undersampling": {
+          "end_line": 293,
+          "line": 226
+        },
+        "train_other_models": {
+          "end_line": 861,
+          "line": 732
+        }
+      },
+      "path": "outputs\\baseline_audit_v1\\sources\\author_v3\\experiment_scripts\\8class_classification_experiment.py",
+      "sha256": "7700971030e0c063bdc204c25fff05af99750c954e0f531d777b605b88ff7c8c"
+    }
+  },
+  "concept_doi": "10.5281/zenodo.17070208",
+  "conclusion": "The local 0.7904 reference is not an exact paper reproduction. Multiple material protocol differences are confirmed; their individual score effects have not been isolated.",
+  "differences": [
+    {
+      "aspect": "source and sampling",
+      "author_v3": "Raw part-*.csv pool; target 5,000,000; minimum 1,000 per original label before family mapping",
+      "interpretation": "Different cohorts and minority representation; the two Macro-F1 values are not directly comparable.",
+      "local_run": "Existing training partition: 5,491,971 flows; no undersampling"
+    },
+    {
+      "aspect": "split",
+      "author_v3": "One 80/20 split stratified by task labels after undersampling",
+      "interpretation": "Local validation is a separate benchmark, not the published held-out test.",
+      "local_run": "Existing external train/test partition; further 80/20 raw-subtype-stratified development/validation split"
+    },
+    {
+      "aspect": "XGBoost depth, 8 classes",
+      "author_v3": "10",
+      "interpretation": "A material model-capacity difference.",
+      "local_run": "6"
+    },
+    {
+      "aspect": "XGBoost rounds",
+      "author_v3": "500; fixed, no XGBoost early stopping configured",
+      "interpretation": "The 500-round cap does not imply that 500 rounds were fitted locally.",
+      "local_run": "Cap 500; inner early stopping 30; reference refit 160"
+    },
+    {
+      "aspect": "XGBoost sampling/bins",
+      "author_v3": "subsample, colsample_bytree, max_bin not set in author script (library defaults)",
+      "interpretation": "Additional differences beyond depth/rounds.",
+      "local_run": "subsample=0.9, colsample_bytree=0.9, max_bin=128"
+    },
+    {
+      "aspect": "feature selector",
+      "author_v3": "Unweighted LightGBM: 100 rounds, 31 leaves, min_data_in_leaf=100; 200,000-row random subset",
+      "interpretation": "Both select gains above the median, but equal feature counts do not establish equal feature subsets.",
+      "local_run": "Inverse-weighted LightGBM: 50 estimators, 15 leaves, max_bin=63; class-preserving 200,000-row sample"
+    },
+    {
+      "aspect": "preprocessing/CV",
+      "author_v3": "Selection/scaling fitted once on all training rows before five-fold CV",
+      "interpretation": "Local CV excludes scoring folds from preprocessing; preserve this improvement in a separate rigorous protocol.",
+      "local_run": "Selection/scaling fitted inside each fold's inner training partition"
+    },
+    {
+      "aspect": "class weights",
+      "author_v3": "Inverse-frequency sample weights",
+      "interpretation": "This component matches in form; class counts and therefore actual weights differ.",
+      "local_run": "Reference uses inverse-frequency sample weights"
+    },
+    {
+      "aspect": "XGBoost depth, 34 classes",
+      "author_v3": "46-feature model: 14; selected-feature model: 10",
+      "interpretation": "The current shared depth-6 configuration is not the author 34-class baseline either.",
+      "local_run": "6"
+    },
+    {
+      "aspect": "environment",
+      "author_v3": "Paper: Python 3.11.2, XGBoost 3.0.2, sklearn 1.6.1, NumPy 2.1.2, pandas 2.3.0",
+      "interpretation": "Exact reproduction should record/version-match the environment; this alone does not explain the gap.",
+      "local_run": "Python 3.14.0; joblib 1.5.3, lightgbm 4.6.0, numpy 2.4.4, pandas 3.0.2, scikit-learn 1.8.0, xgboost 3.2.0"
+    }
+  ],
+  "hyperparameter_search": "The paper describes grid search; pinned v3 XGBoost ablation functions contain fixed parameter dictionaries, not a reproduced grid-search trace.",
+  "local_raw_labels_below_1000": {
+    "Backdoor_Malware": 392,
+    "BrowserHijacking": 665,
+    "CommandInjection": 620,
+    "Recon-PingSweep": 249,
+    "SqlInjection": 590,
+    "Uploading_Attack": 140,
+    "XSS": 414
+  },
+  "local_run": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\experiments\\8class_v1",
+  "paper_script_discrepancy": "Paper text describes family-level minimum allocation for 8 classes; pinned v3 code samples raw labels before family mapping. Exact released subsets are preferable to an inferred sampler.",
+  "paper_url": "https://www.nature.com/articles/s41598-026-47399-5",
+  "published_archive_download": {
+    "downloaded_bytes": 681594732,
+    "expected_bytes": 681594732,
+    "expected_md5": "2f21c060b062f95e7107fce24745124d",
+    "md5": "2f21c060b062f95e7107fce24745124d",
+    "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\data\\raw\\paper_v3\\datasets.tar.xz",
+    "range_prefix_bytes": 79691776,
+    "readers": 4,
+    "record_id": 18675263,
+    "sha256": "d84f77b115909d0feda42fc335af7f30274e647372c021c264380914f19c3e7f",
+    "status": "verified",
+    "test_evaluated": false,
+    "url": "https://zenodo.org/api/records/18675263/files/datasets.tar.xz/content"
+  },
+  "reference_training_preparation": {
+    "archive": {
+      "bytes": 681594732,
+      "md5": "2f21c060b062f95e7107fce24745124d",
+      "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\data\\raw\\paper_v3\\datasets.tar.xz",
+      "sha256": "d84f77b115909d0feda42fc335af7f30274e647372c021c264380914f19c3e7f",
+      "url": "https://zenodo.org/api/records/18675263/files/datasets.tar.xz/content",
+      "version_record_id": 18675263
+    },
+    "members": [
+      {
+        "bytes": 490448768,
+        "name": "34class_test_23features.csv"
+      },
+      {
+        "bytes": 1961795384,
+        "name": "34class_train_23features.csv"
+      },
+      {
+        "bytes": 482902158,
+        "name": "8class_test_23features.csv"
+      },
+      {
+        "bytes": 1931633714,
+        "name": "8class_train_23features.csv"
+      },
+      {
+        "bytes": 376766556,
+        "name": "binary_test_23features.csv"
+      },
+      {
+        "bytes": 1507063626,
+        "name": "binary_train_23features.csv"
+      }
+    ],
+    "model_trained": false,
+    "scope": "Archive decompression traverses compressed bytes; only explicitly named training members are opened/extracted. Test CSV contents are not parsed or evaluated.",
+    "status": "complete",
+    "test_csv_parsed": false,
+    "test_members_extracted": false,
+    "training_subsets": {
+      "34class_train_23features.csv": {
+        "bytes": 1961795384,
+        "class_count": 34,
+        "class_counts": {
+          "Backdoor_Malware": 799,
+          "BenignTraffic": 94014,
+          "BrowserHijacking": 799,
+          "CommandInjection": 799,
+          "DDoS-ACK_Fragmentation": 24407,
+          "DDoS-HTTP_Flood": 2464,
+          "DDoS-ICMP_Flood": 616418,
+          "DDoS-ICMP_Fragmentation": 38736,
+          "DDoS-PSHACK_Flood": 350542,
+          "DDoS-RSTFINFlood": 346307,
+          "DDoS-SYN_Flood": 347498,
+          "DDoS-SlowLoris": 2005,
+          "DDoS-SynonymousIP_Flood": 308028,
+          "DDoS-TCP_Flood": 385035,
+          "DDoS-UDP_Flood": 463334,
+          "DDoS-UDP_Fragmentation": 24562,
+          "DNS_Spoofing": 15315,
+          "DictionaryBruteForce": 1119,
+          "DoS-HTTP_Flood": 6152,
+          "DoS-SYN_Flood": 173684,
+          "DoS-TCP_Flood": 228696,
+          "DoS-UDP_Flood": 284098,
+          "MITM-ArpSpoofing": 26332,
+          "Mirai-greeth_flood": 84911,
+          "Mirai-greip_flood": 64350,
+          "Mirai-udpplain": 76240,
+          "Recon-HostDiscovery": 11503,
+          "Recon-OSScan": 8411,
+          "Recon-PingSweep": 799,
+          "Recon-PortScan": 7044,
+          "SqlInjection": 799,
+          "Uploading_Attack": 799,
+          "VulnerabilityScan": 3200,
+          "XSS": 799
+        },
+        "cv_warning": "The author selected these features using the entire published training split. Resplitting this CSV cannot reproduce fold-local feature selection.",
+        "feature_count": 23,
+        "features": [
+          "flow_duration",
+          "Header_Length",
+          "Protocol Type",
+          "Duration",
+          "Rate",
+          "fin_flag_number",
+          "ack_count",
+          "syn_count",
+          "fin_count",
+          "urg_count",
+          "rst_count",
+          "HTTP",
+          "Tot sum",
+          "Min",
+          "Max",
+          "AVG",
+          "Std",
+          "Tot size",
+          "IAT",
+          "Magnitue",
+          "Radius",
+          "Covariance",
+          "Variance"
+        ],
+        "invalid_rows": 0,
+        "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\data\\raw\\paper_v3\\training_subsets\\34class_train_23features.csv",
+        "representation": "Published selected/scaled features; do not treat as the original 46-feature raw source.",
+        "rows": 3999998,
+        "sha256": "e20ae41476e5c656bef64df1bf891d7023d7e0ae478bdcfd655e9a8da72c6215",
+        "test_file_read": false
+      },
+      "8class_train_23features.csv": {
+        "bytes": 1931633714,
+        "class_count": 8,
+        "class_counts": {
+          "Benign": 94014,
+          "BruteForce": 1118,
+          "DDoS": 2909336,
+          "DoS": 692629,
+          "Mirai": 225501,
+          "Recon": 30958,
+          "Spoofing": 41647,
+          "WebBased": 4795
+        },
+        "cv_warning": "The author selected these features using the entire published training split. Resplitting this CSV cannot reproduce fold-local feature selection.",
+        "feature_count": 23,
+        "features": [
+          "flow_duration",
+          "Header_Length",
+          "Protocol Type",
+          "Duration",
+          "Rate",
+          "ack_count",
+          "syn_count",
+          "fin_count",
+          "urg_count",
+          "rst_count",
+          "Tot sum",
+          "Min",
+          "Max",
+          "AVG",
+          "Std",
+          "Tot size",
+          "IAT",
+          "Number",
+          "Magnitue",
+          "Radius",
+          "Covariance",
+          "Variance",
+          "Weight"
+        ],
+        "invalid_rows": 0,
+        "path": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\data\\raw\\paper_v3\\training_subsets\\8class_train_23features.csv",
+        "representation": "Published selected/scaled features; do not treat as the original 46-feature raw source.",
+        "rows": 3999998,
+        "sha256": "bda8c75f295df02001d5e2789b43ba9b9cebe416dbd4683b4c9a37da29d4bd4d",
+        "test_file_read": false
+      }
+    }
+  },
+  "repository_url": "https://github.com/sa1ah-ai/iot-intrusion-detection-gradient-boosting/tree/e4e0edbacd658721f28b657f16a7f68d6fa72073",
+  "selected_feature_overlap": {
+    "local_count": 23,
+    "published_count": 23,
+    "shared_count": 21,
+    "shared_features": [
+      "AVG",
+      "Covariance",
+      "Duration",
+      "Header_Length",
+      "IAT",
+      "Magnitue",
+      "Max",
+      "Min",
+      "Number",
+      "Protocol Type",
+      "Radius",
+      "Rate",
+      "Tot size",
+      "Tot sum",
+      "Variance",
+      "ack_count",
+      "fin_count",
+      "flow_duration",
+      "rst_count",
+      "syn_count",
+      "urg_count"
+    ]
+  },
+  "source_warning": "These local raw classes cannot supply the author's per-raw-label minimum; sampling the same local CSV cannot reconstruct the original cohort.",
+  "status": "audit_complete_reproduction_pending",
+  "test_file_read": false,
+  "test_monitoring": "Author XGBoost fits pass the test split as eval_set but configure no early stopping; this is monitoring and does not itself establish adaptive test-based model selection.",
+  "version_doi": "10.5281/zenodo.18675263"
+}

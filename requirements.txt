@@ -1,11 +1,12 @@
-numpy>=2.0
-pandas>=2.2
-scikit-learn>=1.5
-joblib>=1.4
-matplotlib>=3.8
-seaborn>=0.13
-xgboost>=2.1
-lightgbm>=4.5
-catboost>=1.2.10
-shap>=0.46
-streamlit>=1.40
+# Shared runtime versions for Docker and Streamlit Community Cloud.
+numpy==2.4.4
+pandas==3.0.2
+scikit-learn==1.8.0
+joblib==1.5.3
+matplotlib==3.10.9
+seaborn==0.13.2
+xgboost==3.2.0
+lightgbm==4.6.0
+catboost==1.2.10
+shap==0.51.0
+streamlit==1.56.0

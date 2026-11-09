@@ -1,0 +1,14 @@
+{
+  "protocol_sha256": "dc25b84f61f5572dc3a7bb3cb30947877878dad96acbdde471e4af92302fd96b",
+  "status": "complete",
+  "tasks": {
+    "34": {
+      "evaluation": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\34class_v1\\test_evaluation_v1",
+      "status": "complete"
+    },
+    "8": {
+      "evaluation": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1\\test_evaluation_v1",
+      "status": "complete"
+    }
+  }
+}

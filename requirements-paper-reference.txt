@@ -1,0 +1,9 @@
+# Use Python 3.11.2 for the software-matched published reference.
+numpy==2.1.2
+pandas==2.3.0
+scikit-learn==1.6.1
+xgboost==3.0.2
+# Supporting versions are pinned here; not all were reported by the paper.
+scipy==1.15.3
+joblib==1.5.3
+threadpoolctl==3.6.0

@@ -1,0 +1,17 @@
+{
+  "final_report_sha256": "a7f871866434bc3b30304a73400ae4a0b43fdfefb95c39e688b8cce57a6951b9",
+  "global_protocol_sha256": "dc25b84f61f5572dc3a7bb3cb30947877878dad96acbdde471e4af92302fd96b",
+  "macro_f1_uncertainty": {
+    "candidate": 0.8939815237356938,
+    "delta": 0.007445239454033088,
+    "delta_ci95": [
+      0.004791486373514642,
+      0.010025949349899395
+    ],
+    "reference": 0.8865362842816606
+  },
+  "selected_34_test_fpr_check_pass": true,
+  "selected_34_test_recall_budget_pass": false,
+  "status": "complete",
+  "test_used_for_selection": false
+}

@@ -1,0 +1,157 @@
+{
+  "gate": {
+    "evidence": {
+      "added_families": [
+        "Spoofing"
+      ],
+      "minimum_extra_error_fraction": 0.1,
+      "outside_group_error_counts_by_family": {
+        "DDoS": 2,
+        "Mirai": 1,
+        "Spoofing": 428
+      },
+      "scope": "Training-only tuning cohort. Routing and within-family errors remain part of full-system evaluation.",
+      "selection_scope": "Training-only tuning predictions; validation/test labels do not select the routing group.",
+      "target_errors": 1319,
+      "target_errors_inside_routing_group": 1316,
+      "target_errors_to_benign": 629
+    },
+    "minimum_fraction": 0.5,
+    "observed_fraction": 0.9977255496588324,
+    "rule": "At least half of target errors must be reachable by the Benign/target routing group; minority-to-Benign and within-target confusions both count."
+  },
+  "seconds": 294.4385871000122,
+  "seed": 42,
+  "selection_sha256": "427ab136c35f5070f366edbeb92317dfd100ffd1b8f50e3b030d5910103e8df8",
+  "source_study": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1",
+  "status": "complete",
+  "test_file_read": false,
+  "tuning_results": [
+    {
+      "accuracy": 0.99584625,
+      "attack_to_benign_rate": 0.0017268371486321632,
+      "balanced_accuracy": 0.8663652006363751,
+      "benign_false_positive_rate": 0.037866297931181195,
+      "candidate": "specialist_075",
+      "macro_f1": 0.8884226720478228,
+      "missed_true_target_rows_by_gate": 3,
+      "recall_by_class": {
+        "Benign": 0.9621337020688188,
+        "BruteForce": 0.5919282511210763,
+        "DDoS": 0.9997834560415765,
+        "DoS": 0.9995379928677649,
+        "Mirai": 0.9999778270509978,
+        "Recon": 0.8614117267000485,
+        "Spoofing": 0.8633853541416566,
+        "WebBased": 0.6527632950990615
+      },
+      "reference_constraints_pass": false,
+      "routed_rows": 34521,
+      "routed_rows_from_outside_group": 18,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 21.798992299998645,
+      "weight_power": 0.75,
+      "weighted_f1": 0.995797303647537
+    },
+    {
+      "accuracy": 0.99584375,
+      "attack_to_benign_rate": 0.0015425046435150161,
+      "balanced_accuracy": 0.870853810466863,
+      "benign_false_positive_rate": 0.04387597723767484,
+      "candidate": "specialist_100",
+      "macro_f1": 0.88690894629743,
+      "missed_true_target_rows_by_gate": 3,
+      "recall_by_class": {
+        "Benign": 0.9561240227623251,
+        "BruteForce": 0.5964125560538116,
+        "DDoS": 0.9997834560415765,
+        "DoS": 0.9995379928677649,
+        "Mirai": 0.9999778270509978,
+        "Recon": 0.8659344209336133,
+        "Spoofing": 0.8702280912364946,
+        "WebBased": 0.6788321167883211
+      },
+      "reference_constraints_pass": false,
+      "routed_rows": 34521,
+      "routed_rows_from_outside_group": 18,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 20.127456600021105,
+      "weight_power": 1.0,
+      "weighted_f1": 0.9958147440640394
+    },
+    {
+      "accuracy": 0.99567375,
+      "attack_to_benign_rate": 0.0014541786514797163,
+      "balanced_accuracy": 0.871301970556339,
+      "benign_false_positive_rate": 0.05057703557942882,
+      "candidate": "specialist_125",
+      "macro_f1": 0.8820179310732585,
+      "missed_true_target_rows_by_gate": 3,
+      "recall_by_class": {
+        "Benign": 0.9494229644205712,
+        "BruteForce": 0.600896860986547,
+        "DDoS": 0.9997834560415765,
+        "DoS": 0.9995379928677649,
+        "Mirai": 0.9999778270509978,
+        "Recon": 0.8685188176385075,
+        "Spoofing": 0.8661464585834334,
+        "WebBased": 0.6861313868613139
+      },
+      "reference_constraints_pass": false,
+      "routed_rows": 34521,
+      "routed_rows_from_outside_group": 18,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 19.478518399992026,
+      "weight_power": 1.25,
+      "weighted_f1": 0.9956612024542973
+    }
+  ],
+  "upstream_feature_selection": "Author-selected/scaled 23 features; cannot establish nested preprocessing or exact held-out paper reproduction.",
+  "validation_results": [
+    {
+      "accuracy": 0.99592,
+      "attack_to_benign_rate": 0.001619309853980494,
+      "balanced_accuracy": 0.856635593315205,
+      "benign_false_positive_rate": 0.037174918895920867,
+      "candidate": "specialist_075",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        41.63779759994941,
+        37.304972099955194,
+        36.88862510002218
+      ],
+      "inference_us_per_sample": 46.63121512494399,
+      "latency_scope": "Complete base prediction and routing, specialist prediction and decision; published features, batched CPU.",
+      "macro_f1": 0.8809811138183575,
+      "recall_by_class": {
+        "Benign": 0.9628250811040792,
+        "BruteForce": 0.5044642857142857,
+        "DDoS": 0.9998023603332032,
+        "DoS": 0.9994874608376767,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8590116279069767,
+        "Spoofing": 0.8727338215872253,
+        "WebBased": 0.6548488008342023
+      },
+      "reference_constraints_pass": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "specialist_training_seconds": 23.165420299977995,
+      "split": "validation",
+      "training_seconds": 163.26999760000035,
+      "weighted_f1": 0.9958667459063368
+    }
+  ],
+  "variant": "expanded group plus reference capacity (joint variant)"
+}

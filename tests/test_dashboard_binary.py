@@ -63,12 +63,13 @@ class BinaryReportTests(unittest.TestCase):
              patch("joblib.load", side_effect=AssertionError("Browsing must not load models")), \
              patch.object(dashboard, "run_command", side_effect=AssertionError("Browsing must not train")):
             app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+            app.radio(key="dashboard_navigation").set_value("Workflows").run()
             self.assertEqual(len(app.exception), 0)
             metrics = {metric.label: metric.value for metric in app.metric}
             self.assertEqual(metrics["Raw CSV files"], "0")
             self.assertEqual(metrics["Best model"], "lightgbm")
             self.assertTrue(any("Saved binary models are available" in message.value for message in app.info))
-            app.radio[0].set_value("Predict").run()
+            app.radio(key="binary_page").set_value("Predict").run()
             self.assertEqual(len(app.exception), 0)
             models = next(select for select in app.selectbox if select.label == "Model")
             self.assertEqual(len(models.options), 5)
@@ -92,7 +93,8 @@ class BinaryReportTests(unittest.TestCase):
              patch("joblib.load", side_effect=AssertionError("Metrics must not load models")), \
              patch.object(dashboard, "run_command", side_effect=AssertionError("Metrics must not train")):
             app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
-            app.radio[0].set_value("Model Comparison").run()
+            app.radio(key="dashboard_navigation").set_value("Workflows").run()
+            app.radio(key="binary_page").set_value("Model Comparison").run()
             self.assertEqual(len(app.exception), 0)
             tables = [element.value for element in app.dataframe]
             self.assertTrue(any({"model", "accuracy", "precision", "recall", "f1"} <= set(table.columns) for table in tables))

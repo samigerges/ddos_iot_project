@@ -1,0 +1,16 @@
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#0f766e"
+backgroundColor = "#f6f8fa"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#1e293b"
+font = "sans serif"
+borderColor = "#dfe6eb"
+chartCategoricalColors = ["#0f766e", "#64748b", "#60a5fa", "#d97706", "#8b5cf6"]
+
+[theme.sidebar]
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f1f5f5"

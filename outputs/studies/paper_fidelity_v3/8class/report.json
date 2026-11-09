@@ -1,0 +1,28 @@
+{
+  "environment": {
+    "numpy": "2.1.2",
+    "pandas": "2.3.0",
+    "python": "3.11.2",
+    "scikit-learn": "1.6.1",
+    "xgboost": "3.0.2"
+  },
+  "model_sha256": "c9bed01033f718e25d604eb12cc6880115e158c96fa1a14a22b40d0aedeef7e2",
+  "num_classes": 8,
+  "parameters": {
+    "colsample_bytree": 1.0,
+    "learning_rate": 0.1,
+    "max_bin": 256,
+    "max_depth": 10,
+    "n_estimators": 500,
+    "subsample": 1.0,
+    "weights": "inverse frequency"
+  },
+  "rows": 3999998,
+  "scope": "Published selected-feature reference; hardware differs from authors. No test score until the final protocol freezes this model.",
+  "seconds_total": 243.5416014000075,
+  "seed": 42,
+  "source_sha256": "bda8c75f295df02001d5e2789b43ba9b9cebe416dbd4683b4c9a37da29d4bd4d",
+  "status": "complete",
+  "test_file_read": false,
+  "training_seconds": 224.72125800000504
+}

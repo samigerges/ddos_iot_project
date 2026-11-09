@@ -1,0 +1,18 @@
+# Send only application source, dependencies, documentation and tests to Docker.
+# Datasets, saved models, outputs, local environments and secrets stay on the host.
+**
+!app.py
+!run.py
+!requirements*.txt
+!.streamlit/
+!.streamlit/config.toml
+!src/
+!src/**
+!configs/
+!configs/**
+!docs/
+!docs/**
+!tests/
+!tests/**
+**/__pycache__/
+**/*.py[cod]

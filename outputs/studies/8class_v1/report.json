@@ -1,0 +1,508 @@
+{
+  "config_sha256": "e418091757bc6b16b782ccff5f2640ed18f3847e2cb72466b52602d1b849797d",
+  "failures": [],
+  "num_classes": 8,
+  "paper_reference_evaluation": "Pending a separately frozen final-test protocol; development scores are not the paper test score.",
+  "protocol": "Verified published training subset; disjoint fit/tune/validation; choices freeze before validation.",
+  "python": "3.14.0",
+  "results": [
+    {
+      "accuracy": 0.9958275,
+      "attack_to_benign_rate": 0.001721716801267798,
+      "balanced_accuracy": 0.863151977586617,
+      "benign_false_positive_rate": 0.03669627187150987,
+      "candidate": "paper_fixed",
+      "macro_f1": 0.8880233142136161,
+      "recall_by_class": {
+        "Benign": 0.9633037281284902,
+        "BruteForce": 0.57847533632287,
+        "DDoS": 0.9997834560415765,
+        "DoS": 0.9995379928677649,
+        "Mirai": 0.9999778270509978,
+        "Recon": 0.8573736068486513,
+        "Spoofing": 0.8633853541416566,
+        "WebBased": 0.643378519290928
+      },
+      "reference_constraints_pass": true,
+      "rounds": 500,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 109.45564400003059,
+      "trial": {
+        "depth": 10,
+        "early_stopping": false,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "paper_fixed",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.995773861935437
+    },
+    {
+      "accuracy": 0.9953625,
+      "attack_to_benign_rate": 0.0012493647569051085,
+      "balanced_accuracy": 0.8792545040797626,
+      "benign_false_positive_rate": 0.061266819124607776,
+      "candidate": "depth6_fixed",
+      "macro_f1": 0.8599490812468009,
+      "recall_by_class": {
+        "Benign": 0.9387331808753923,
+        "BruteForce": 0.6098654708520179,
+        "DDoS": 0.9997697072188194,
+        "DoS": 0.9995885248978531,
+        "Mirai": 0.9999556541019956,
+        "Recon": 0.8543046357615894,
+        "Spoofing": 0.8612244897959184,
+        "WebBased": 0.7705943691345151
+      },
+      "reference_constraints_pass": false,
+      "rounds": 500,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 76.01735490001738,
+      "trial": {
+        "depth": 6,
+        "early_stopping": false,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "depth6_fixed",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9954569513198045
+    },
+    {
+      "accuracy": 0.9941275,
+      "attack_to_benign_rate": 0.0011635989385519914,
+      "balanced_accuracy": 0.8920879893353806,
+      "benign_false_positive_rate": 0.08429505929904803,
+      "candidate": "depth6_early",
+      "macro_f1": 0.8048393362248543,
+      "recall_by_class": {
+        "Benign": 0.915704940700952,
+        "BruteForce": 0.7174887892376681,
+        "DDoS": 0.9996184701684918,
+        "DoS": 0.999624619205059,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8005168793409788,
+        "Spoofing": 0.8300120048019207,
+        "WebBased": 0.8738269030239834
+      },
+      "reference_constraints_pass": false,
+      "rounds": 130,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 29.947713000001386,
+      "trial": {
+        "depth": 6,
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "depth6_early",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9947061213630668
+    },
+    {
+      "accuracy": 0.99432125,
+      "attack_to_benign_rate": 0.0011840803280094522,
+      "balanced_accuracy": 0.8927716020853171,
+      "benign_false_positive_rate": 0.08131681114715737,
+      "candidate": "depth8_early",
+      "macro_f1": 0.8097463957745137,
+      "recall_by_class": {
+        "Benign": 0.9186831888528426,
+        "BruteForce": 0.7174887892376681,
+        "DDoS": 0.9996717468566754,
+        "DoS": 0.9996318380665001,
+        "Mirai": 0.9999334811529933,
+        "Recon": 0.8077854950734937,
+        "Spoofing": 0.8334933973589436,
+        "WebBased": 0.8654848800834203
+      },
+      "reference_constraints_pass": false,
+      "rounds": 93,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 26.967763199994806,
+      "trial": {
+        "depth": 8,
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "depth8_early",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9948191485204076
+    },
+    {
+      "accuracy": 0.99451375,
+      "attack_to_benign_rate": 0.0011904807622149086,
+      "balanced_accuracy": 0.8944124561852504,
+      "benign_false_positive_rate": 0.07461575280540339,
+      "candidate": "depth10_early",
+      "macro_f1": 0.8149225196580472,
+      "recall_by_class": {
+        "Benign": 0.9253842471945966,
+        "BruteForce": 0.7174887892376681,
+        "DDoS": 0.9996511236225398,
+        "DoS": 0.9995813060364119,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8071393958972702,
+        "Spoofing": 0.8396158463385354,
+        "WebBased": 0.8665276329509907
+      },
+      "reference_constraints_pass": false,
+      "rounds": 66,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 23.998564700013958,
+      "trial": {
+        "depth": 10,
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "depth10_early",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9949588373574089
+    },
+    {
+      "accuracy": 0.9944475,
+      "attack_to_benign_rate": 0.001191760849056,
+      "balanced_accuracy": 0.8925072441699942,
+      "benign_false_positive_rate": 0.07493485082167739,
+      "candidate": "depth10_regularized",
+      "macro_f1": 0.8141753424404297,
+      "recall_by_class": {
+        "Benign": 0.9250651491783226,
+        "BruteForce": 0.7040358744394619,
+        "DDoS": 0.9995806609059099,
+        "DoS": 0.9995668683135296,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8094007430140526,
+        "Spoofing": 0.8380552220888355,
+        "WebBased": 0.8644421272158499
+      },
+      "reference_constraints_pass": false,
+      "rounds": 67,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 23.029910199984442,
+      "trial": {
+        "depth": 10,
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "min_child_weight": 5.0,
+        "model": "xgboost",
+        "name": "depth10_regularized",
+        "reg_lambda": 5.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9948906882696431
+    },
+    {
+      "accuracy": 0.9958375,
+      "attack_to_benign_rate": 0.0017780406222758151,
+      "balanced_accuracy": 0.859020028763647,
+      "benign_false_positive_rate": 0.03345210870605755,
+      "candidate": "weight_075",
+      "macro_f1": 0.8860071674604801,
+      "recall_by_class": {
+        "Benign": 0.9665478912939425,
+        "BruteForce": 0.5605381165919282,
+        "DDoS": 0.9998126722899352,
+        "DoS": 0.9995524305906472,
+        "Mirai": 0.9999778270509978,
+        "Recon": 0.8606041027297691,
+        "Spoofing": 0.8542617046818728,
+        "WebBased": 0.6308654848800834
+      },
+      "reference_constraints_pass": false,
+      "rounds": 500,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 110.39296070003184,
+      "trial": {
+        "depth": 10,
+        "early_stopping": false,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "weight_075",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 0.75
+      },
+      "weighted_f1": 0.9957745954352992
+    },
+    {
+      "accuracy": 0.99558625,
+      "attack_to_benign_rate": 0.001913729827431493,
+      "balanced_accuracy": 0.8395063909015695,
+      "benign_false_positive_rate": 0.03185661862468755,
+      "candidate": "weight_050",
+      "macro_f1": 0.866765370354292,
+      "recall_by_class": {
+        "Benign": 0.9681433813753124,
+        "BruteForce": 0.4977578475336323,
+        "DDoS": 0.9998092350842459,
+        "DoS": 0.9995307740063237,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8441285737360685,
+        "Spoofing": 0.8499399759903962,
+        "WebBased": 0.556830031282586
+      },
+      "reference_constraints_pass": false,
+      "rounds": 500,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 107.58182900003158,
+      "trial": {
+        "depth": 10,
+        "early_stopping": false,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "xgboost",
+        "name": "weight_050",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 0.5
+      },
+      "weighted_f1": 0.9954973531289373
+    },
+    {
+      "accuracy": 0.98736875,
+      "attack_to_benign_rate": 0.0016474717644845026,
+      "balanced_accuracy": 0.811535489007037,
+      "benign_false_positive_rate": 0.15545391692814978,
+      "candidate": "catboost",
+      "macro_f1": 0.722396103694539,
+      "recall_by_class": {
+        "Benign": 0.8445460830718502,
+        "BruteForce": 0.5067264573991032,
+        "DDoS": 0.9961090831597544,
+        "DoS": 0.9985345711274418,
+        "Mirai": 0.9969623059866962,
+        "Recon": 0.692618316911646,
+        "Spoofing": 0.7226890756302521,
+        "WebBased": 0.7340980187695516
+      },
+      "reference_constraints_pass": false,
+      "rounds": 166,
+      "rows": 800000,
+      "score_role": "Training-only candidate/round selection diagnostics.",
+      "seed": 42,
+      "split": "tuning",
+      "training_seconds": 22.739627999952063,
+      "trial": {
+        "depth": 8,
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "min_child_weight": 1.0,
+        "model": "catboost",
+        "name": "catboost",
+        "reg_lambda": 1.0,
+        "rounds": 500,
+        "weight_power": 1.0
+      },
+      "weighted_f1": 0.9888085061483928
+    }
+  ],
+  "seconds": 1130.5951125000138,
+  "selections": {
+    "42": {
+      "best_macro": "paper_fixed",
+      "best_xgboost": "paper_fixed",
+      "complexity_evidence": {
+        "diversity": {
+          "complementarity_present": true,
+          "disagreement_fraction": 0.01154625,
+          "error_correlation": 0.4510958249651636,
+          "rescued_samples": 698,
+          "scope": "Training-only tuning cohort, not independent performance evidence.",
+          "spoiled_samples": 7465,
+          "target_rescues": 363,
+          "target_spoiled": 1312,
+          "target_to_benign_rescues": 136
+        },
+        "specialist": {
+          "scope": "Training-only tuning cohort. Routing and within-family errors remain part of full-system evaluation.",
+          "target_errors": 1319,
+          "target_errors_to_benign": 629
+        }
+      },
+      "constraints": {
+        "benign_class_id": 0,
+        "max_benign_fpr": 0.03669627187150981,
+        "minimum_recall": {
+          "1": 0.57847533632287,
+          "5": 0.8573736068486513,
+          "7": 0.643378519290928
+        }
+      },
+      "guarded_macro": "paper_fixed",
+      "protected_labels": [
+        "BruteForce",
+        "Recon",
+        "WebBased"
+      ],
+      "rule": "Training-only tuning Macro-F1; report unrestricted and all-target-recall/FPR guarded choices separately.",
+      "seed": 42,
+      "sha256": "cb633e26e8e7c8eb2519d7dd95f8516a5feda1fda7d40092e95b259c617a4682",
+      "test_file_read": false,
+      "trials": {
+        "catboost": {
+          "rounds": 166,
+          "trial": {
+            "depth": 8,
+            "early_stopping": true,
+            "learning_rate": 0.1,
+            "min_child_weight": 1.0,
+            "model": "catboost",
+            "name": "catboost",
+            "reg_lambda": 1.0,
+            "rounds": 500,
+            "weight_power": 1.0
+          }
+        },
+        "paper_fixed": {
+          "rounds": 500,
+          "trial": {
+            "depth": 10,
+            "early_stopping": false,
+            "learning_rate": 0.1,
+            "min_child_weight": 1.0,
+            "model": "xgboost",
+            "name": "paper_fixed",
+            "reg_lambda": 1.0,
+            "rounds": 500,
+            "weight_power": 1.0
+          }
+        }
+      },
+      "validation_candidates": [
+        "paper_fixed",
+        "catboost"
+      ],
+      "validation_used_for_selection": false
+    }
+  },
+  "status": "complete",
+  "test_file_read": false,
+  "test_used_for_selection": false,
+  "upstream_feature_selection": "Author-selected/scaled 23 features; cannot establish nested preprocessing or exact held-out paper reproduction.",
+  "validation_results": [
+    {
+      "accuracy": 0.99585375,
+      "attack_to_benign_rate": 0.001635950982914681,
+      "balanced_accuracy": 0.8556560119819612,
+      "benign_false_positive_rate": 0.03887677498271552,
+      "candidate": "paper_fixed",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        53.984612600004766,
+        52.99613739998313,
+        54.9676116000046
+      ],
+      "inference_us_per_sample": 67.48076575000596,
+      "latency_scope": "Batched prediction on published selected/scaled features; excludes raw feature extraction/loading.",
+      "macro_f1": 0.8812105560656739,
+      "recall_by_class": {
+        "Benign": 0.9611232250172844,
+        "BruteForce": 0.5089285714285714,
+        "DDoS": 0.9998023603332032,
+        "DoS": 0.9994874608376767,
+        "Mirai": 0.9998891352549889,
+        "Recon": 0.8599806201550387,
+        "Spoofing": 0.8705726978028575,
+        "WebBased": 0.6454640250260688
+      },
+      "reference_constraints_pass": true,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "selected_guarded": true,
+      "selected_unrestricted": true,
+      "single_flow_latency_measured": false,
+      "split": "validation",
+      "training_seconds": 140.10457730002236,
+      "weighted_f1": 0.9958007303018164
+    },
+    {
+      "accuracy": 0.98773,
+      "attack_to_benign_rate": 0.001635950982914681,
+      "balanced_accuracy": 0.8186439053479354,
+      "benign_false_positive_rate": 0.15189065574642344,
+      "candidate": "catboost",
+      "full_cohort_warmup": true,
+      "inference_device": "cpu",
+      "inference_seconds_runs": [
+        0.2827281000209041,
+        0.2703891000128351,
+        0.30055869999341667
+      ],
+      "inference_us_per_sample": 0.3534101250261301,
+      "latency_scope": "Batched prediction on published selected/scaled features; excludes raw feature extraction/loading.",
+      "macro_f1": 0.7237603454756409,
+      "recall_by_class": {
+        "Benign": 0.8481093442535765,
+        "BruteForce": 0.5669642857142857,
+        "DDoS": 0.9966916838384029,
+        "DoS": 0.9984046316215006,
+        "Mirai": 0.9975831485587583,
+        "Recon": 0.6729651162790697,
+        "Spoofing": 0.7186937207347821,
+        "WebBased": 0.7497393117831074
+      },
+      "reference_constraints_pass": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "selected_guarded": false,
+      "selected_unrestricted": false,
+      "single_flow_latency_measured": false,
+      "split": "validation",
+      "training_seconds": 23.69958419998875,
+      "weighted_f1": 0.9891658474042903
+    }
+  ],
+  "versions": {
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "xgboost": "3.2.0"
+  }
+}

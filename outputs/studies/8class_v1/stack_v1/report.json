@@ -1,0 +1,130 @@
+{
+  "diversity": {
+    "complementarity_present": true,
+    "disagreement_fraction": 0.01154625,
+    "error_correlation": 0.4510958249651636,
+    "rescued_samples": 698,
+    "scope": "Training-only tuning cohort, not independent performance evidence.",
+    "spoiled_samples": 7465,
+    "target_rescues": 363,
+    "target_spoiled": 1312,
+    "target_to_benign_rescues": 136
+  },
+  "latency_gate": {
+    "maximum": 5.0,
+    "ratio_estimate": 1.0052371979051837,
+    "scope": "Sum of measured base throughput costs, used only for compute-cost gating."
+  },
+  "probability_inference_timing": {
+    "full_cohort_warmup": true,
+    "inference_device": "cpu",
+    "median_us_per_sample": 69.87485950005066,
+    "scope": "All base predictions plus log features and meta predict_proba; decision timed separately per condition.",
+    "seconds_runs": [
+      56.117970400024205,
+      54.96021340001607,
+      55.89988760004053
+    ]
+  },
+  "protected_bias_search": "coordinate",
+  "seconds": 393.8340247000451,
+  "seed": 42,
+  "selection_sha256": "81cd6bfea796b57f8ad60f7ea01a0f9fa399f8bbb3f09a72476d6c967bc235d3",
+  "source_study": "C:\\Users\\samy gerges\\projects\\ddos_iot_project-main\\outputs\\studies\\8class_v1",
+  "status": "complete",
+  "test_file_read": false,
+  "training_costs": {
+    "base_development_fit_seconds": 163.8041615000111,
+    "base_oof_fit_seconds": 542.9789333999506,
+    "meta_calibration_fit_seconds": 27.926507399999537,
+    "meta_final_fit_seconds": 5.437171900004614,
+    "total_fit_seconds": 740.1467741999659
+  },
+  "upstream_feature_selection": "Author-selected/scaled 23 features; cannot establish nested preprocessing or exact held-out paper reproduction.",
+  "validation_results": [
+    {
+      "accuracy": 0.99393625,
+      "attack_to_benign_rate": 0.0008538179230078969,
+      "balanced_accuracy": 0.9020764642123803,
+      "benign_false_positive_rate": 0.09301707174387065,
+      "candidate": "stack_argmax",
+      "decision_us_per_sample": 0.19066325003223028,
+      "macro_f1": 0.7951181786261581,
+      "recall_by_class": {
+        "Benign": 0.9069829282561294,
+        "BruteForce": 0.8258928571428571,
+        "DDoS": 0.9996631532635465,
+        "DoS": 0.9995813060364119,
+        "Mirai": 0.9998891352549889,
+        "Recon": 0.7960271317829457,
+        "Spoofing": 0.8314323448193061,
+        "WebBased": 0.8571428571428571
+      },
+      "reference_constraints_pass": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "shared_probability_inference_us": 69.87485950005066,
+      "split": "validation",
+      "timing_note": "Probability and decision timings are separate measurements, not a paired end-to-end latency measurement.",
+      "training_seconds": 740.1467741999659,
+      "weighted_f1": 0.9949466202602758
+    },
+    {
+      "accuracy": 0.995525,
+      "attack_to_benign_rate": 0.0014516184777975337,
+      "balanced_accuracy": 0.8513926051277976,
+      "benign_false_positive_rate": 0.05116204860926448,
+      "candidate": "stack_bias",
+      "decision_us_per_sample": 0.24485125002684072,
+      "macro_f1": 0.8776968201004323,
+      "recall_by_class": {
+        "Benign": 0.9488379513907356,
+        "BruteForce": 0.4955357142857143,
+        "DDoS": 0.999637374176573,
+        "DoS": 0.9995813060364119,
+        "Mirai": 0.9998669623059867,
+        "Recon": 0.8089470284237726,
+        "Spoofing": 0.9153559851122584,
+        "WebBased": 0.643378519290928
+      },
+      "reference_constraints_pass": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "shared_probability_inference_us": 69.87485950005066,
+      "split": "validation",
+      "timing_note": "Probability and decision timings are separate measurements, not a paired end-to-end latency measurement.",
+      "training_seconds": 740.1467741999659,
+      "weighted_f1": 0.9954926741803556
+    },
+    {
+      "accuracy": 0.99542625,
+      "attack_to_benign_rate": 0.0023873619586352738,
+      "balanced_accuracy": 0.8562412648446234,
+      "benign_false_positive_rate": 0.02100728607137159,
+      "candidate": "stack_protected_bias",
+      "decision_us_per_sample": 0.21832300000824034,
+      "macro_f1": 0.8766097637278472,
+      "recall_by_class": {
+        "Benign": 0.9789927139286284,
+        "BruteForce": 0.5357142857142857,
+        "DDoS": 0.9993606786430576,
+        "DoS": 0.9998844982169413,
+        "Mirai": 0.9999113082039911,
+        "Recon": 0.8583656330749354,
+        "Spoofing": 0.8113819185976708,
+        "WebBased": 0.6663190823774765
+      },
+      "reference_constraints_pass": false,
+      "rows": 800000,
+      "score_role": "Validation after training-only choices were frozen; upstream published feature selection is not fold-local.",
+      "seed": 42,
+      "shared_probability_inference_us": 69.87485950005066,
+      "split": "validation",
+      "timing_note": "Probability and decision timings are separate measurements, not a paired end-to-end latency measurement.",
+      "training_seconds": 740.1467741999659,
+      "weighted_f1": 0.995354258112555
+    }
+  ]
+}

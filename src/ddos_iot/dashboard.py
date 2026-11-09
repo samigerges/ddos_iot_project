@@ -12,6 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from ddos_iot.dashboard_metrics import render_evaluation_tables, render_metric_table
+from ddos_iot.dashboard_style import apply_dashboard_style, page_header
 from ddos_iot.paths import (
     MODEL_COMPARISON_DIR,
     PREDICTIONS_DIR,
@@ -40,15 +41,22 @@ st.set_page_config(
 def main() -> None:
     """Render the dashboard."""
 
-    st.title("IoT Intrusion Detection")
-    st.caption(
-        "Preprocess traffic flows, compare models, inspect SHAP explanations, and run predictions."
+    apply_dashboard_style()
+    navigation = st.sidebar.radio(
+        "Navigation", ("Overview", "Workflows"), key="dashboard_navigation",
     )
+    if navigation == "Overview":
+        from ddos_iot.dashboard_journey import render_journey
 
+        render_journey()
+        return
+
+    st.sidebar.divider()
     problem = st.sidebar.selectbox(
         "Classification problem",
         ("Binary — Benign vs DDoS", "8 classes — Attack families", "34 classes — Original labels"),
         key="classification_problem",
+        format_func=lambda value: value.split(" — ")[0],
     )
     if problem != "Binary — Benign vs DDoS":
         from ddos_iot.dashboard_multiclass import render_multiclass
@@ -59,6 +67,7 @@ def main() -> None:
     page = st.sidebar.radio(
         "View",
         ("Overview", "Run Pipeline", "Dataset", "Model Comparison", "SHAP", "Predict"),
+        key="binary_page",
     )
 
     if page == "Overview":
@@ -78,6 +87,7 @@ def main() -> None:
 def render_overview() -> None:
     """Render project status cards."""
 
+    page_header("Binary Workflow Overview", "Your datasets, saved models, and latest comparison in one place.")
     raw_files = list(RAW_DATA_DIR.rglob("*.csv")) if RAW_DATA_DIR.exists() else []
     comparison_file = MODEL_COMPARISON_DIR / "model_comparison.csv"
     best_report = read_json(MODEL_COMPARISON_DIR / "model_comparison_report.json")
@@ -124,7 +134,8 @@ def render_overview() -> None:
 
     if comparison_file.exists():
         st.subheader("Latest Comparison")
-        st.dataframe(pd.read_csv(comparison_file), use_container_width=True, hide_index=True)
+        render_metric_table(pd.read_csv(comparison_file),
+                            ("model", "accuracy", "precision", "recall", "f1", "roc_auc"), sort_by="f1")
     else:
         st.info("No model comparison is available yet. Run the pipeline to generate results.")
 
@@ -132,11 +143,13 @@ def render_overview() -> None:
 def render_pipeline_runner() -> None:
     """Render controls for running the pipeline."""
 
-    st.subheader("Run Pipeline")
-    st.caption("Training uses the raw train CSV, and evaluation uses the raw test CSV.")
-    st.caption("Step 1 creates processed train/test files. Step 2 trains on an allowed number of processed train rows.")
+    page_header("Run Pipeline", "Prepare your dataset, then train and compare models. Evaluation uses the separate test CSV.")
 
     left, right = st.columns(2)
+    left = left.container(border=True, key="panel_binary_data")
+    right = right.container(border=True, key="panel_binary_options")
+    left.markdown("#### Dataset & outputs")
+    right.markdown("#### Run options")
     train_input_path = left.text_input(
         "Train input path",
         value=str(RAW_TRAIN_FILE.relative_to(PROJECT_ROOT)),
@@ -166,7 +179,7 @@ def render_pipeline_runner() -> None:
 
     st.markdown("**Step 1: Preprocess Data**")
     st.caption("This creates the processed train and test files that training will use.")
-    if st.button("Run Preprocessing", key="run_preprocessing_button"):
+    if st.button("Run Preprocessing", key="run_preprocessing_button", type="primary"):
         preprocess_command = [
             sys.executable,
             "src/preprocess.py",
@@ -236,7 +249,7 @@ def render_pipeline_runner() -> None:
         help="This value is limited to the processed training rows currently available.",
     )
 
-    if st.button("Run Training And Comparison", key="run_training_button"):
+    if st.button("Run Training And Comparison", key="run_training_button", type="primary"):
         training_command = [
             sys.executable,
             "src/compare_models.py",
@@ -283,8 +296,7 @@ def render_pipeline_runner() -> None:
 def render_dataset_page() -> None:
     """Render processed dataset and preprocessing summaries."""
 
-    st.subheader("Dataset")
-    st.caption("Processed train and test files come from the raw train/test CSVs, not an internal split.")
+    page_header("Dataset", "Inspect processed train and test data, class balance, and selected features.")
     st.caption("Train-side stats reflect the latest sampled training data when a training run is available.")
     report = read_json(PROCESSED_DATA_DIR / "preprocessing_report.json")
     processed_summary = read_processed_split_summary(PROCESSED_DATA_DIR)
@@ -300,8 +312,8 @@ def render_dataset_page() -> None:
 
     raw_sources = extract_raw_sources(report)
     if raw_sources:
-        st.subheader("Raw Sources")
-        st.dataframe(pd.DataFrame(raw_sources), use_container_width=True, hide_index=True)
+        with st.expander("Source files"):
+            st.dataframe(pd.DataFrame(raw_sources), use_container_width=True, hide_index=True)
 
     columns = st.columns(4)
     columns[0].metric("Train rows", f"{training_summary['train_rows_used']:,}")
@@ -326,20 +338,20 @@ def render_dataset_page() -> None:
     st.dataframe(class_counts, use_container_width=True, hide_index=True)
     st.bar_chart(class_counts.set_index("split")[["benign", "ddos"]])
 
-    st.subheader("Selected Features")
     selected_features = read_json(PROCESSED_DATA_DIR / "selected_features.json") or []
     if selected_features:
-        st.dataframe(pd.DataFrame({"feature": selected_features}), use_container_width=True, hide_index=True)
+        with st.expander("Selected features"):
+            st.dataframe(pd.DataFrame({"feature": selected_features}), use_container_width=True, hide_index=True)
 
     if report:
-        st.subheader("Preprocessing Report")
-        st.json(report, expanded=False)
+        with st.expander("Preprocessing details"):
+            st.json(report, expanded=False)
 
 
 def render_model_comparison_page() -> None:
     """Render model comparison metrics and per-model artifacts."""
 
-    st.subheader("Model Comparison")
+    page_header("Model Comparison", "Compare test scores and prediction cost, then inspect each model's diagnostics.")
     comparison_path = MODEL_COMPARISON_DIR / "model_comparison.csv"
     report = read_json(MODEL_COMPARISON_DIR / "model_comparison_report.json")
 
@@ -367,8 +379,8 @@ def render_model_comparison_page() -> None:
          "false_positive_rate", "false_negative_rate"),
         sort_by=report.get("selected_metric", "f1") if isinstance(report, dict) else "f1",
     )
-    st.subheader("Timing comparison")
-    render_metric_table(comparison, ("model", "train_time_seconds", "inference_time_seconds", "inference_time_per_row_ms"))
+    with st.expander("Training & inference timing"):
+        render_metric_table(comparison, ("model", "train_time_seconds", "inference_time_seconds", "inference_time_per_row_ms"))
 
     metric_columns = [
         "accuracy",
@@ -421,25 +433,22 @@ def render_model_detail(model_dir: Path) -> None:
                      key=f"binary_{model_dir.name}_split") if splits else "test"
     render_evaluation_tables(model_dir, metrics=metrics.get(split) if splits else None,
                              split=split, key=f"binary_{model_dir.name}_{split}")
-    render_images(
-        [
-            model_dir / "roc_curve.png",
-            model_dir / "precision_recall_curve.png",
-            model_dir / "score_distribution.png",
-        ],
-        columns=2,
-    )
+    with st.expander("ROC, precision-recall & score plots"):
+        render_images(
+            [model_dir / "roc_curve.png", model_dir / "precision_recall_curve.png", model_dir / "score_distribution.png"],
+            columns=2,
+        )
 
     feature_importance = model_dir / "feature_importance.csv"
     if feature_importance.exists():
-        st.subheader("Feature Importance")
-        st.dataframe(read_csv(feature_importance), use_container_width=True, hide_index=True)
+        with st.expander("Feature importance"):
+            st.dataframe(read_csv(feature_importance), use_container_width=True, hide_index=True)
 
 
 def render_shap_page() -> None:
     """Render SHAP global and local explanation artifacts."""
 
-    st.subheader("SHAP Explanations")
+    page_header("SHAP Explanations", "Understand feature contributions across the model and for individual predictions.")
     shap_dirs = [path / "shap" for path in available_model_dirs() if (path / "shap").exists()]
     if not shap_dirs:
         st.info("No SHAP outputs exist yet. Run the pipeline with --explain-shap.")
@@ -463,17 +472,19 @@ def render_shap_page() -> None:
     if importance_path.exists():
         st.subheader("Global Importance")
         importance = read_csv(importance_path)
-        st.dataframe(importance, use_container_width=True, hide_index=True)
         if {"feature", "mean_abs_shap"}.issubset(importance.columns):
             st.bar_chart(importance.set_index("feature")["mean_abs_shap"])
+        with st.expander("Feature importance table"):
+            st.dataframe(importance, use_container_width=True, hide_index=True)
 
-    st.subheader("Global Plots")
-    render_images([shap_dir / "shap_summary_bar.png", shap_dir / "shap_beeswarm.png"], columns=2)
+    with st.expander("Global SHAP plots"):
+        render_images([shap_dir / "shap_summary_bar.png", shap_dir / "shap_beeswarm.png"], columns=2)
 
     st.subheader("Local Explanations")
     local_table = shap_dir / "shap_local_top_features.csv"
     if local_table.exists():
-        st.dataframe(read_csv(local_table), use_container_width=True, hide_index=True)
+        with st.expander("Local contribution table"):
+            st.dataframe(read_csv(local_table), use_container_width=True, hide_index=True)
     waterfall_images = sorted(shap_dir.glob("shap_local_waterfall_*.png"))
     if waterfall_images:
         selected = st.selectbox("Waterfall plot", waterfall_images, format_func=lambda path: path.stem)
@@ -483,13 +494,17 @@ def render_shap_page() -> None:
 def render_predict_page() -> None:
     """Render prediction controls for processed CSV files."""
 
-    st.subheader("Predict")
+    page_header("Predict", "Upload processed traffic features and run an existing model.")
     model_files = sorted(MODEL_COMPARISON_DIR.glob("*/model.joblib"))
     if not model_files:
         st.info("No trained model exists yet. Run training or model comparison first.")
         return
 
     left, right = st.columns(2)
+    left = left.container(border=True, key="panel_binary_predict_input")
+    right = right.container(border=True, key="panel_binary_predict_shap")
+    left.markdown("#### Model & input")
+    right.markdown("#### Explanation options")
     model_path = left.selectbox("Model", model_files, format_func=lambda path: path.parent.name)
     uploaded_file = left.file_uploader("Processed CSV", type=["csv"])
     threshold = left.slider("Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
@@ -499,7 +514,7 @@ def render_predict_page() -> None:
     verbose = right.checkbox("Verbose logs", value=False)
     prediction_state = st.session_state.get("predict_page_result")
 
-    if st.button("Predict", disabled=uploaded_file is None):
+    if st.button("Predict", disabled=uploaded_file is None, type="primary"):
         PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
         upload_path = PREDICTIONS_DIR / "uploaded_prediction_input.csv"
         output_path = PREDICTIONS_DIR / "ui_predictions.csv"
@@ -643,7 +658,8 @@ def run_command(
     """Run a project command and return the captured result."""
 
     if show_command:
-        st.code(" ".join(command), language="powershell")
+        with st.expander("Command details"):
+            st.code(" ".join(command), language="powershell")
     with st.spinner(spinner_text):
         return subprocess.run(
             command,
@@ -703,7 +719,8 @@ def render_command_summary(
 
     widget_prefix = key_prefix or title.lower().replace(" ", "_")
     if result.stdout:
-        st.text_area("Output", result.stdout, height=200, key=f"{widget_prefix}_output")
+        with st.expander("Run output", expanded=result.returncode != 0):
+            st.text_area("Output", result.stdout, height=200, key=f"{widget_prefix}_output")
 
 
 def render_prediction_summary(
